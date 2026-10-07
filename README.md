@@ -255,6 +255,78 @@ Covers:
 
 ---
 
+## 📁 Repository Structure
+
+```
+Green_squares/
+│
+├── api/
+│   ├── auth/
+│   │   └── github/
+│   │       ├── login.js          # OAuth authorization redirect with CSRF state
+│   │       ├── callback.js       # Code exchange and secure session cookie issuance
+│   │       ├── logout.js         # Session cookie termination
+│   │       └── me.js             # Authenticated profile query
+│   │
+│   └── github/
+│       ├── activity.js           # Live public user activity events feed
+│       ├── contributions.js      # 365-day GraphQL contribution calendar query
+│       ├── repositories.js       # User public repositories query
+│       └── health.js             # Public API health monitor
+│
+├── assets/
+│   ├── logo.svg                  # Full vector logo with wordmark
+│   ├── logo-mark.svg             # Original emerald squircle brand mark
+│   ├── favicon.svg               # Scalable browser tab favicon
+│   ├── favicon.ico               # Multi-resolution ICO icon
+│   ├── apple-touch-icon.png      # iOS home screen web clip icon
+│   └── social-preview.png        # 1200x630 OpenGraph / Twitter preview card
+│
+├── tests/
+│   ├── app.spec.js               # Multi-device Playwright test suite
+│   └── runner.js                 # Zero-dependency automated test runner
+│
+├── screenshots/                  # Multi-viewport responsive snapshots
+│
+├── index.html                    # Semantic HTML5 frontend, ARIA & SEO markup
+├── style.css                     # Premium dark/emerald design system
+├── script.js                     # Dual DataProvider controller & defensive DOM map
+├── server.js                     # Local Node dev server with Vercel shims
+│
+├── README.md                     # Comprehensive project documentation
+├── LICENSE                       # MIT Open Source License (Soman Singhal)
+├── CONTRIBUTING.md               # Contribution, coding, and PR guidelines
+├── CODE_OF_CONDUCT.md            # Contributor Covenant v2.1 code of conduct
+├── SECURITY.md                   # Security policy, secret protection & disclosure
+├── CHANGELOG.md                  # Release history and unreleased features
+├── SUPPORT.md                    # Support channels via GitHub Issues
+├── TESTS.md                      # Comprehensive Quality Assurance test matrix
+├── AUDIT-page.md                 # Detailed compliance and audit checklist
+│
+├── .env.example                  # Environment variable template
+├── .gitignore                    # Secrets, caches, and test artifacts exclusion
+├── package.json                  # Scripts: start, dev, test, test:e2e
+├── playwright.config.js          # Playwright test harness configuration
+├── vercel.json                   # Vercel routing and security headers
+├── robots.txt                    # Search crawler indexing rules
+├── sitemap.xml                   # XML sitemap for production homepage
+├── manifest.webmanifest          # PWA Web App Manifest
+└── google43d334ab82b2aeee.html   # Google Search Console verification token
+```
+
+---
+
+## 🤝 Open Source & Contributing
+
+Contributions are welcome! Please check our community guidelines:
+- [Contributing Guidelines](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security Policy](SECURITY.md)
+- [Changelog](CHANGELOG.md)
+- [Support Guidelines](SUPPORT.md)
+
+---
+
 ## 📄 License & Attribution
 
 MIT License &copy; 2026 Soman Singhal. Built with pride for developers worldwide.  
