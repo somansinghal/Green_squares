@@ -1,0 +1,7 @@
+# https://githubgreensquare.vercel.app/robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/auth/
+Disallow: /api/github/
+
+Sitemap: https://githubgreensquare.vercel.app/sitemap.xml

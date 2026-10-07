@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="7" fill="#0d1117" stroke="#238636" stroke-width="1.5" />
+  <!-- Contribution squares -->
+  <rect x="6" y="8" width="5" height="5" rx="1" fill="#0e4429" />
+  <rect x="13" y="8" width="5" height="5" rx="1" fill="#26a641" />
+  <rect x="6" y="15" width="5" height="5" rx="1" fill="#26a641" />
+  <rect x="13" y="15" width="5" height="5" rx="1" fill="#39d353" />
+  <rect x="6" y="22" width="5" height="5" rx="1" fill="#006d32" />
+  <rect x="13" y="22" width="5" height="5" rx="1" fill="#26a641" />
+  <!-- Upward arrow -->
+  <path d="M 7 24 C 11 23, 17 18, 23 8" stroke="#00f59b" stroke-width="2.5" stroke-linecap="round" fill="none" />
+  <path d="M 18 7 L 25 7 L 25 14 Z" fill="#00f59b" />
+</svg>

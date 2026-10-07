@@ -28,7 +28,33 @@ async function runTests() {
   assert(html.includes('href="https://github.com/somansinghal"'), 'Social: Real GitHub profile link');
   assert(html.includes('href="https://instagram.com/_somansinghal"'), 'Social: Real Instagram profile link');
   assert(html.includes('href="https://somansinghal.vercel.app/"'), 'Social: Real Portfolio profile link');
+  assert(html.includes('google-site-verification'), 'SEO: Google Site Verification meta tag exists');
+  assert(html.includes('assets/social-preview.png'), 'SEO: Social preview card referenced');
+  assert(html.includes('manifest.webmanifest'), 'PWA: Web App Manifest link exists');
   assert(!html.includes('linkedin.com'), 'Social: No invented LinkedIn link');
+
+  // Verify Required Project Assets and Open Source Documents
+  const requiredFiles = [
+    'assets/logo.svg',
+    'assets/logo-mark.svg',
+    'assets/favicon.svg',
+    'assets/favicon.ico',
+    'assets/apple-touch-icon.png',
+    'assets/social-preview.png',
+    'manifest.webmanifest',
+    'robots.txt',
+    'sitemap.xml',
+    'LICENSE',
+    'CONTRIBUTING.md',
+    'CODE_OF_CONDUCT.md',
+    'SECURITY.md',
+    'CHANGELOG.md',
+    'SUPPORT.md',
+    'google43d334ab82b2aeee.html'
+  ];
+  for (const relPath of requiredFiles) {
+    assert(fs.existsSync(path.join(__dirname, '..', relPath)), `File Integrity: ${relPath} exists and accessible`);
+  }
 
   // 2. Verify all DOM element references in script.js
   const js = fs.readFileSync(path.join(__dirname, '../script.js'), 'utf8');
@@ -96,11 +122,16 @@ async function runTests() {
   assert(resHtml.status === 200, 'Server: Serves index.html at root (200 OK)');
   assert(resHtml.headers['content-type'] && resHtml.headers['content-type'].includes('text/html'), 'Server: Content-Type is text/html');
 
-  // Test 2: Health API endpoint
+  // Test 2: Health API endpoints
   const resHealth = await mockDispatch('/api/health');
   assert(resHealth.status === 200, 'API /api/health: Returns 200 OK');
   const healthData = JSON.parse(resHealth.data);
   assert(healthData.status === 'ok' && healthData.githubApi === 'connected', 'API /api/health: Reports status ok and connected');
+
+  const resGhHealth = await mockDispatch('/api/github/health');
+  assert(resGhHealth.status === 200, 'API /api/github/health: Returns 200 OK');
+  const ghHealthData = JSON.parse(resGhHealth.data);
+  assert(ghHealthData.status === 'ok' && ghHealthData.githubApi === 'connected', 'API /api/github/health: Reports status ok and connected');
 
   // Test 3: Auth me endpoint (unauthenticated)
   const resMe = await mockDispatch('/api/auth/github/me');

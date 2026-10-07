@@ -25,7 +25,8 @@ const API_ROUTES = {
   '/api/github/contributions': require('./api/github/contributions'),
   '/api/github/repositories': require('./api/github/repositories'),
   '/api/github/activity': require('./api/github/activity'),
-  '/api/health': require('./api/health')
+  '/api/health': require('./api/health'),
+  '/api/github/health': require('./api/github/health')
 };
 
 const server = http.createServer(async (req, res) => {
