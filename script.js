@@ -1,9 +1,20 @@
 /**
- * 🟩 GitHub Green Squares Ka Junoon
- * Tagline: "Commit karo. Green squares banao. Streak maintain karo. 🔥"
+ * 🟩 GitHub Green Squares — Developer Contribution Analytics (V2 Production)
+ * Tagline: "Turn your coding activity into measurable developer progress."
  * 
- * Interactive GitHub-inspired contribution activity dashboard.
- * Pure Vanilla JavaScript (ES6+).
+ * Pure Vanilla JavaScript ES6+ (Zero external dependencies).
+ * Architecture:
+ * - Centralized DOM Reference System with Graceful Missing-Element Handling (Fixes Root Cause)
+ * - Dual DataProvider Architecture: DemoDataProvider & GitHubDataProvider
+ * - Real GitHub OAuth Integration (Connect, Disconnect, Sync, Profile, Repos, Events)
+ * - 365-Day GitHub Contribution Calendar Heatmap
+ * - Real-time Calculation Engines (Streaks, Consistency Algorithm, Metrics)
+ * - Dynamic Vector SVG Trend Curve & Custom HTML/CSS Analytics Charts
+ * - Full CRUD Operations in Demo Mode with LocalStorage Persistence
+ * - Data Import / Export (JSON Backup & Migration)
+ * - Mobile Navigation Menu with Accessible Toggle
+ * - Dark / Light / System Theme Engine
+ * - Zero Uncaught Console Errors
  */
 
 (function () {
@@ -13,1901 +24,2857 @@
   // 1. CONSTANTS & CONFIGURATION
   // ==========================================================================
 
-  const STORAGE_KEY = 'green_squares_junoon_state_v1';
+  const STORAGE_KEY = 'github_green_squares_analytics_v2';
+  const THEME_KEY = 'github_green_squares_theme_v2';
+  const GOAL_KEY = 'github_green_squares_goal_v2';
+  const CACHE_KEY_GH = 'github_green_squares_gh_cache_v2';
+
+  const SIMULATED_TODAY_STR = '2026-10-07';
+  const SUPPORTED_DEMO_YEARS = ['2026', '2025', '2024'];
 
   const DEMO_REPOSITORIES = [
-    'Green-Square-Lab',
-    'Commit-Tracker',
+    'LegalLens AI',
+    'ScanForge',
     'Dev-Journal',
-    'Contribution-Visualizer',
-    'Code-Streak'
+    'Green-Square-Lab',
+    'Commit-Tracker'
   ];
 
-  const MOTIVATIONAL_QUOTES = [
-    "One more commit bro. 🔥",
-    "Green square dopamine incoming. 💚",
-    "Git push karo, tension chhodo.",
-    "Consistency > perfection.",
-    "Kal se daily commit pakka. 😭",
-    "Production bug bhi ek contribution hai... maybe. 😭",
-    "Commit today. Regret never.",
-    "Streak tootne mat dena bhai.",
-    "Green square dekh ke dopamine 📈",
-    "Subah code, shaam ko push, raat ko sukoon. 🌙",
-    "Code likho, commit karo, duniya jeeto. 🚀",
-    "Your future self will thank you for this green square. 💻"
+  const MONTH_NAMES_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const MONTH_NAMES_FULL = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
   ];
+  const WEEKDAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-  const ACHIEVEMENTS_DEF = [
+  // 10 System Achievements Definitions (Section 25)
+  const ACHIEVEMENTS_DEFINITIONS = [
     {
-      id: 'first_square',
+      id: 'first_contribution',
       icon: '🟩',
-      name: 'First Green Square',
-      desc: 'Commit at least once and turn a square green.',
-      threshold: 1,
+      name: 'First Contribution',
+      desc: 'Record your very first contribution in the application.',
+      req: '1 contribution',
       check: (stats) => stats.totalContributions >= 1,
       progress: (stats) => Math.min(100, (stats.totalContributions / 1) * 100),
-      current: (stats) => `${Math.min(stats.totalContributions, 1)} / 1 commit`
-    },
-    {
-      id: 'streak_3',
-      icon: '🔥',
-      name: '3 Day Streak',
-      desc: 'Maintain an active coding streak of 3 consecutive days.',
-      threshold: 3,
-      check: (stats) => stats.longestStreak >= 3,
-      progress: (stats) => Math.min(100, (stats.longestStreak / 3) * 100),
-      current: (stats) => `${Math.min(stats.longestStreak, 3)} / 3 days`
+      current: (stats) => `${Math.min(stats.totalContributions, 1)} / 1 contribution`
     },
     {
       id: 'streak_7',
       icon: '🔥',
       name: '7 Day Streak',
-      desc: 'Maintain an active coding streak for an entire week.',
-      threshold: 7,
+      desc: 'Maintain an active coding streak of 7 consecutive days.',
+      req: '7 consecutive active days',
       check: (stats) => stats.longestStreak >= 7,
       progress: (stats) => Math.min(100, (stats.longestStreak / 7) * 100),
       current: (stats) => `${Math.min(stats.longestStreak, 7)} / 7 days`
     },
     {
       id: 'streak_30',
-      icon: '🏆',
+      icon: '⚡',
       name: '30 Day Streak',
-      desc: 'Legendary developer stamina: 30 consecutive coding days!',
-      threshold: 30,
+      desc: 'Demonstrate unstoppable developer momentum for 30 straight days.',
+      req: '30 consecutive active days',
       check: (stats) => stats.longestStreak >= 30,
       progress: (stats) => Math.min(100, (stats.longestStreak / 30) * 100),
       current: (stats) => `${Math.min(stats.longestStreak, 30)} / 30 days`
     },
     {
-      id: 'contrib_100',
-      icon: '💚',
+      id: 'century_contrib',
+      icon: '💯',
       name: '100 Contributions',
-      desc: 'Reach a century of simulated commits in the current year.',
-      threshold: 100,
+      desc: 'Cross the milestone of 100 total contributions in a single year.',
+      req: '100 contributions',
       check: (stats) => stats.totalContributions >= 100,
       progress: (stats) => Math.min(100, (stats.totalContributions / 100) * 100),
-      current: (stats) => `${Math.min(stats.totalContributions, 100)} / 100 commits`
+      current: (stats) => `${Math.min(stats.totalContributions, 100)} / 100 contributions`
     },
     {
-      id: 'contrib_500',
-      icon: '💚',
+      id: 'major_milestone',
+      icon: '🚀',
       name: '500 Contributions',
-      desc: 'Hardcore contributor: generate 500 total commits.',
-      threshold: 500,
+      desc: 'Reach 500 total contributions across commits, PRs, and reviews.',
+      req: '500 contributions',
       check: (stats) => stats.totalContributions >= 500,
       progress: (stats) => Math.min(100, (stats.totalContributions / 500) * 100),
-      current: (stats) => `${Math.min(stats.totalContributions, 500)} / 500 commits`
+      current: (stats) => `${Math.min(stats.totalContributions, 500)} / 500 contributions`
     },
     {
-      id: 'repos_5',
-      icon: '📦',
-      name: '5 Active Repositories',
-      desc: 'Commit to all 5 simulated demo repositories.',
-      threshold: 5,
-      check: (stats) => stats.activeReposCount >= 5,
-      progress: (stats) => Math.min(100, (stats.activeReposCount / 5) * 100),
-      current: (stats) => `${Math.min(stats.activeReposCount, 5)} / 5 repositories`
+      id: 'code_machine',
+      icon: '👑',
+      name: '1000 Contributions',
+      desc: 'Join the four-digit contribution elite: 1,000 recorded contributions.',
+      req: '1,000 contributions',
+      check: (stats) => stats.totalContributions >= 1000,
+      progress: (stats) => Math.min(100, (stats.totalContributions / 1000) * 100),
+      current: (stats) => `${Math.min(stats.totalContributions, 1000)} / 1000 contributions`
+    },
+    {
+      id: 'active_100',
+      icon: '📅',
+      name: '100 Active Days',
+      desc: 'Show sustained dedication by logging contributions on 100 different days.',
+      req: '100 active days in year',
+      check: (stats) => stats.activeDays >= 100,
+      progress: (stats) => Math.min(100, (stats.activeDays / 100) * 100),
+      current: (stats) => `${Math.min(stats.activeDays, 100)} / 100 active days`
+    },
+    {
+      id: 'consistency_master',
+      icon: '🎯',
+      name: 'Consistency Master',
+      desc: 'Score 75 or higher on the transparent consistency algorithm.',
+      req: 'Consistency Score ≥ 75',
+      check: (stats) => stats.consistencyScore >= 75,
+      progress: (stats) => Math.min(100, (stats.consistencyScore / 75) * 100),
+      current: (stats) => `${Math.min(stats.consistencyScore, 75)} / 75 score`
+    },
+    {
+      id: 'weekend_warrior',
+      icon: '⚔️',
+      name: 'Weekend Warrior',
+      desc: 'Ship code on the weekends: log 25+ contributions on Saturdays or Sundays.',
+      req: '25+ weekend contributions',
+      check: (stats) => stats.weekendContributions >= 25,
+      progress: (stats) => Math.min(100, (stats.weekendContributions / 25) * 100),
+      current: (stats) => `${Math.min(stats.weekendContributions, 25)} / 25 weekend contributions`
+    },
+    {
+      id: 'activity_explorer',
+      icon: '🧭',
+      name: 'Activity Explorer',
+      desc: 'Contribute across all 4 types: Commits, Pull Requests, Issues, and Reviews.',
+      req: 'Activity logged in all 4 categories',
+      check: (stats) => stats.totalCommits > 0 && stats.totalPRs > 0 && stats.totalIssues > 0 && stats.totalReviews > 0,
+      progress: (stats) => {
+        let count = 0;
+        if (stats.totalCommits > 0) count++;
+        if (stats.totalPRs > 0) count++;
+        if (stats.totalIssues > 0) count++;
+        if (stats.totalReviews > 0) count++;
+        return (count / 4) * 100;
+      },
+      current: (stats) => {
+        let count = 0;
+        if (stats.totalCommits > 0) count++;
+        if (stats.totalPRs > 0) count++;
+        if (stats.totalIssues > 0) count++;
+        if (stats.totalReviews > 0) count++;
+        return `${count} / 4 activity types unlocked`;
+      }
     }
   ];
 
-  // Month abbreviations for heatmap columns
-  const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
   // ==========================================================================
-  // 2. STATE MANAGEMENT
+  // 2. CENTRALIZED DOM REFERENCE SYSTEM (Section 1 & 29)
+  // Fixes the root cause of "null is not an object" by validating references
   // ==========================================================================
 
-  let appState = {
-    selectedYear: 2026,
-    theme: 'dark',
-    palette: 'emerald',
-    soundEnabled: true,
-    paintMode: false,
-    paintBrush: 4,
-    weeklyGoal: 20,
-    activeIntensityFilter: 'all',
-    selectedRepoFilter: null,
-    // contributions[year] = { "YYYY-MM-DD": { count: number, repo: string, note?: string } }
-    contributionsByYear: {},
-    recentActivity: []
-  };
+  let DOM = {};
 
-  let modalActiveCellDate = null;
-  let isMousePainting = false;
-  let liveStreamInterval = null;
+  function initDOMReferences() {
+    DOM = {
+      // Header & Navigation
+      btnMobileMenu: document.getElementById('btn-mobile-menu'),
+      mainNavList: document.getElementById('main-nav-list'),
+      themeBtn: document.getElementById('theme-btn'),
+      themeIcon: document.getElementById('theme-icon'),
+      themeLabel: document.getElementById('theme-label'),
+      themeMenu: document.getElementById('theme-menu'),
+      settingsThemeSelect: document.getElementById('settings-theme-select'),
+      btnHeaderAdd: document.getElementById('btn-header-add'),
+      btnHeaderGenerate: document.getElementById('btn-header-generate'),
+      btnHeaderReset: document.getElementById('btn-header-reset'),
 
-  // Web Audio Synthesizer (No external dependencies)
-  let audioCtx = null;
+      // GitHub Auth & Mode Badges
+      btnConnectGithub: document.getElementById('btn-connect-github'),
+      userConnectedBadge: document.getElementById('user-connected-badge'),
+      headerUserAvatar: document.getElementById('header-user-avatar'),
+      headerUserName: document.getElementById('header-user-name'),
+      btnRefreshGithub: document.getElementById('btn-refresh-github'),
+      btnDisconnectGithub: document.getElementById('btn-disconnect-github'),
+      dashboardModeBadge: document.getElementById('dashboard-mode-badge'),
+      modeTitleText: document.getElementById('mode-title-text'),
+      modeDescText: document.getElementById('mode-desc-text'),
+      apiHealthBadge: document.getElementById('api-health-badge'),
+      apiHealthLabel: document.getElementById('api-health-label'),
 
-  function getAudioContext() {
-    if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-    return audioCtx;
-  }
+      // Profile Card Elements
+      profUserName: document.getElementById('prof-user-name'),
+      profUserRole: document.getElementById('prof-user-role'),
+      profUserBio: document.getElementById('prof-user-bio'),
+      profAvatarImg: document.getElementById('prof-avatar-img'),
+      profAvatarFallback: document.getElementById('prof-avatar-fallback'),
+      profAvatarInitials: document.getElementById('prof-avatar-initials'),
+      profStatusPill: document.getElementById('prof-status-pill'),
+      profBadgeDot: document.getElementById('prof-badge-dot'),
+      profStatusLabel: document.getElementById('prof-status-label'),
+      profGithubMeta: document.getElementById('prof-github-meta'),
+      profGhRepos: document.getElementById('prof-gh-repos'),
+      profGhFollowers: document.getElementById('prof-gh-followers'),
+      profGhFollowing: document.getElementById('prof-gh-following'),
+      profGithubLink: document.getElementById('prof-github-link'),
+      profTotalContrib: document.getElementById('prof-total-contributions'),
+      profYearLabel: document.getElementById('prof-year-label'),
+      profCurrentStreak: document.getElementById('prof-current-streak'),
+      profLongestStreak: document.getElementById('prof-longest-streak'),
+      profActiveDays: document.getElementById('prof-active-days'),
+      profActivePct: document.getElementById('prof-active-pct'),
 
-  function playCommitSound() {
-    if (!appState.soundEnabled) return;
-    try {
-      const ctx = getAudioContext();
-      if (!ctx) return;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(540, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(840, ctx.currentTime + 0.07);
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.07);
-    } catch (e) {}
-  }
+      // 8 Metric Cards Elements
+      statAvgContrib: document.getElementById('stat-avg-contributions'),
+      statCurrentStreak: document.getElementById('stat-current-streak'),
+      statStreakMsg: document.getElementById('stat-streak-msg'),
+      statLongestStreak: document.getElementById('stat-longest-streak'),
+      statBestMonth: document.getElementById('stat-best-month'),
+      statBestMonthVol: document.getElementById('stat-best-month-vol'),
+      statBestDay: document.getElementById('stat-best-day'),
+      statBestDayDate: document.getElementById('stat-best-day-date'),
+      statBestWeekday: document.getElementById('stat-best-weekday'),
+      statBestWeekdayVol: document.getElementById('stat-best-weekday-vol'),
+      statConsistencyScore: document.getElementById('stat-consistency-score'),
+      statConsistencyDesc: document.getElementById('stat-consistency-desc'),
+      statActiveRepos: document.getElementById('stat-active-repos'),
+      statReposSub: document.getElementById('stat-repos-sub'),
 
-  function playSuccessSound() {
-    if (!appState.soundEnabled) return;
-    try {
-      const ctx = getAudioContext();
-      if (!ctx) return;
-      const now = ctx.currentTime;
-      [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now + i * 0.06);
-        gain.gain.setValueAtTime(0.1, now + i * 0.06);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.15);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now + i * 0.06);
-        osc.stop(now + i * 0.06 + 0.15);
-      });
-    } catch (e) {}
-  }
+      // Heatmap Controls & Calendar
+      yearSelect: document.getElementById('year-select'),
+      typeFilterSelect: document.getElementById('type-filter-select'),
+      btnAddActivityModal: document.getElementById('btn-add-activity-modal'),
+      btnOpenGenModal: document.getElementById('btn-open-gen-modal'),
+      heatmapCalendar: document.getElementById('heatmap-calendar'),
+      heatmapSubtext: document.getElementById('heatmap-subtext'),
+      heatmapModeTag: document.getElementById('heatmap-mode-tag'),
+      filterPills: document.querySelectorAll('.filter-pill'),
 
-  // ==========================================================================
-  // 3. SEED-BASED DEMO DATA GENERATION
-  // ==========================================================================
+      // Weekly Chart & Goal Tracker
+      weeklyAnalyticsChart: document.getElementById('weekly-analytics-chart'),
+      weeklyPeakInfo: document.getElementById('weekly-peak-info'),
+      weeklyAvgInfo: document.getElementById('weekly-avg-info'),
+      btnGoalDec: document.getElementById('btn-goal-dec'),
+      goalTargetInput: document.getElementById('goal-target-input'),
+      btnGoalInc: document.getElementById('btn-goal-inc'),
+      goalTargetDisplay: document.getElementById('goal-target-display'),
+      goalCurrentDisplay: document.getElementById('goal-current-display'),
+      goalPercentDisplay: document.getElementById('goal-percent-display'),
+      goalProgressBar: document.getElementById('goal-progress-bar'),
+      goalProgressFill: document.getElementById('goal-progress-fill'),
+      goalStatusBox: document.getElementById('goal-status-box'),
+      goalStatusIcon: document.getElementById('goal-status-icon'),
+      goalStatusText: document.getElementById('goal-status-text'),
 
-  /**
-   * Deterministic pseudo-random number generator (Mulberry32)
-   */
-  function createSeededRandom(seed) {
-    return function () {
-      let t = (seed += 0x6d2b79f5);
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      // Monthly Chart & Trend SVG
+      monthlyAnalyticsChart: document.getElementById('monthly-analytics-chart'),
+      monthlyBestInfo: document.getElementById('monthly-best-info'),
+      monthlyTotalInfo: document.getElementById('monthly-total-info'),
+      trendChartContainer: document.getElementById('trend-chart-container'),
+      trendPeakPeriod: document.getElementById('trend-peak-period'),
+      trendVelocityLabel: document.getElementById('trend-velocity-label'),
+
+      // Repository Analytics & Recent Stream
+      repoFilterIndicator: document.getElementById('repo-filter-indicator'),
+      repoFilterActiveText: document.getElementById('repo-filter-active-text'),
+      btnClearRepoFilter: document.getElementById('btn-clear-repo-filter'),
+      repoAnalyticsList: document.getElementById('repo-analytics-list'),
+      activityStreamCount: document.getElementById('activity-stream-count'),
+      recentActivityFeed: document.getElementById('recent-activity-feed'),
+
+      // Achievements
+      achievementsTallyBadge: document.getElementById('achievements-tally-badge'),
+      achievementsGrid: document.getElementById('achievements-grid'),
+
+      // Settings
+      settingsGoalInput: document.getElementById('settings-goal-input'),
+      btnExportData: document.getElementById('btn-export-data'),
+      btnImportData: document.getElementById('btn-import-data'),
+      btnSettingsOpenGen: document.getElementById('btn-settings-open-gen'),
+      btnSettingsReset: document.getElementById('btn-settings-reset'),
+      hiddenExportLink: document.getElementById('hidden-export-link'),
+
+      // Global Components
+      toastContainer: document.getElementById('toast-container'),
+      appTooltip: document.getElementById('app-tooltip')
     };
   }
 
+  // Safe DOM helper utilities (prevent any null-reference crashes)
+  function setText(el, text) {
+    if (el) el.textContent = text !== undefined && text !== null ? text : '';
+  }
+  function setHTML(el, html) {
+    if (el) el.innerHTML = html !== undefined && html !== null ? html : '';
+  }
+  function setVal(el, val) {
+    if (el) el.value = val !== undefined && val !== null ? val : '';
+  }
+
+  // ==========================================================================
+  // 3. DATA LAYER ARCHITECTURE & PROVIDER ABSTRACTION (Section 9)
+  // ==========================================================================
+
   /**
-   * Helper: format Date object to YYYY-MM-DD in local time
+   * DataProvider Base Class
    */
-  function formatDateKey(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+  class DataProvider {
+    async getYearData(year) { throw new Error('getYearData not implemented'); }
+    async addActivity(year, entry) { throw new Error('addActivity not implemented'); }
+    async updateActivity(year, entry) { throw new Error('updateActivity not implemented'); }
+    async deleteActivity(year, dateStr) { throw new Error('deleteActivity not implemented'); }
+    async generateDemo(year, intensity) { throw new Error('generateDemo not implemented'); }
+    async resetAll() { throw new Error('resetAll not implemented'); }
+    async getRepositories() { return []; }
+    async getRecentActivity() { return []; }
   }
 
   /**
-   * Determine contribution level (0-4) from commit count
+   * DemoDataProvider Implementation (Local-First Simulation)
    */
+  class DemoDataProvider extends DataProvider {
+    constructor() {
+      super();
+      this.state = this.loadAppState();
+    }
+
+    loadAppState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object' && parsed.years && parsed.years['2026']) {
+            return parsed;
+          }
+        }
+      } catch (err) {
+        console.warn('Could not read demo state from localStorage:', err);
+      }
+      return this.createInitialDemoState();
+    }
+
+    saveAppState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      } catch (err) {
+        console.error('Failed to save state to localStorage:', err);
+        showToast('Storage quota exceeded or private mode enabled.', 'error');
+      }
+    }
+
+    createInitialDemoState() {
+      const state = {
+        version: 2,
+        createdAt: new Date().toISOString(),
+        weeklyGoal: 35,
+        years: {}
+      };
+
+      SUPPORTED_DEMO_YEARS.forEach((yr) => {
+        state.years[yr] = generateDemoYearData(parseInt(yr, 10), 'normal');
+      });
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+      return state;
+    }
+
+    async getYearData(year) {
+      const yrStr = String(year);
+      if (!this.state.years[yrStr]) {
+        this.state.years[yrStr] = generateDemoYearData(parseInt(yrStr, 10), 'normal');
+        this.saveAppState();
+      }
+      return this.state.years[yrStr];
+    }
+
+    async addActivity(year, newEntry) {
+      const yrStr = String(year);
+      if (!this.state.years[yrStr]) {
+        this.state.years[yrStr] = {};
+      }
+
+      const dateStr = newEntry.date;
+      const existing = this.state.years[yrStr][dateStr] || {
+        date: dateStr,
+        commits: 0,
+        pullRequests: 0,
+        issues: 0,
+        codeReviews: 0,
+        total: 0,
+        repositories: [],
+        primaryRepo: newEntry.repo,
+        note: ''
+      };
+
+      if (newEntry.type === 'commits') existing.commits += newEntry.count;
+      else if (newEntry.type === 'prs') existing.pullRequests += newEntry.count;
+      else if (newEntry.type === 'issues') existing.issues += newEntry.count;
+      else if (newEntry.type === 'reviews') existing.codeReviews += newEntry.count;
+
+      existing.total = existing.commits + existing.pullRequests + existing.issues + existing.codeReviews;
+
+      if (!existing.repositories.includes(newEntry.repo)) {
+        existing.repositories.push(newEntry.repo);
+      }
+      existing.primaryRepo = newEntry.repo;
+      if (newEntry.note) {
+        existing.note = newEntry.note;
+      }
+
+      this.state.years[yrStr][dateStr] = existing;
+      this.saveAppState();
+      return existing;
+    }
+
+    async updateActivity(year, updatedData) {
+      const yrStr = String(year);
+      if (!this.state.years[yrStr]) return null;
+
+      const dateStr = updatedData.date;
+      const commits = Math.max(0, parseInt(updatedData.commits, 10) || 0);
+      const prs = Math.max(0, parseInt(updatedData.pullRequests, 10) || 0);
+      const issues = Math.max(0, parseInt(updatedData.issues, 10) || 0);
+      const reviews = Math.max(0, parseInt(updatedData.codeReviews, 10) || 0);
+      const total = commits + prs + issues + reviews;
+
+      if (total === 0) {
+        delete this.state.years[yrStr][dateStr];
+      } else {
+        const repo = updatedData.primaryRepo || DEMO_REPOSITORIES[0];
+        this.state.years[yrStr][dateStr] = {
+          date: dateStr,
+          commits,
+          pullRequests: prs,
+          issues,
+          codeReviews: reviews,
+          total,
+          repositories: [repo],
+          primaryRepo: repo,
+          note: updatedData.note || ''
+        };
+      }
+
+      this.saveAppState();
+      return this.state.years[yrStr][dateStr] || null;
+    }
+
+    async deleteActivity(year, dateStr) {
+      const yrStr = String(year);
+      if (this.state.years[yrStr] && this.state.years[yrStr][dateStr]) {
+        delete this.state.years[yrStr][dateStr];
+        this.saveAppState();
+        return true;
+      }
+      return false;
+    }
+
+    async generateDemo(year, intensity = 'normal') {
+      const yrStr = String(year);
+      this.state.years[yrStr] = generateDemoYearData(parseInt(yrStr, 10), intensity);
+      this.saveAppState();
+      return this.state.years[yrStr];
+    }
+
+    async resetAll() {
+      this.state = this.createInitialDemoState();
+      try {
+        localStorage.removeItem(GOAL_KEY);
+      } catch (e) {}
+      return this.state;
+    }
+
+    getWeeklyGoal() {
+      try {
+        const stored = localStorage.getItem(GOAL_KEY);
+        if (stored) return parseInt(stored, 10) || 35;
+      } catch (e) {}
+      return this.state.weeklyGoal || 35;
+    }
+
+    setWeeklyGoal(goal) {
+      const val = Math.max(5, Math.min(200, parseInt(goal, 10) || 35));
+      this.state.weeklyGoal = val;
+      try {
+        localStorage.setItem(GOAL_KEY, String(val));
+      } catch (e) {}
+      this.saveAppState();
+      return val;
+    }
+  }
+
+  /**
+   * GitHubDataProvider Implementation (Live GitHub API Integration)
+   */
+  class GitHubDataProvider extends DataProvider {
+    constructor() {
+      super();
+      this.cache = {};
+      this.userProfile = null;
+      this.lastSyncTime = null;
+    }
+
+    async checkAuth() {
+      try {
+        const res = await fetch('/api/auth/github/me', { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) return { authenticated: false };
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          this.userProfile = data.user;
+          return { authenticated: true, user: data.user };
+        }
+        return { authenticated: false };
+      } catch (err) {
+        console.warn('GitHub auth check offline or serverless not available:', err);
+        return { authenticated: false };
+      }
+    }
+
+    async getYearData(year) {
+      const yrStr = String(year);
+      if (this.cache[yrStr]) {
+        return this.cache[yrStr];
+      }
+
+      try {
+        const res = await fetch(`/api/github/contributions?year=${yrStr}`);
+        if (!res.ok) {
+          throw new Error(`GitHub API returned status ${res.status}`);
+        }
+        const data = await res.json();
+        if (data.success && data.days) {
+          this.cache[yrStr] = data.days;
+          this.lastSyncTime = new Date();
+          return data.days;
+        }
+        throw new Error(data.message || 'Failed to parse GitHub contribution data');
+      } catch (err) {
+        console.error('Error fetching live GitHub contributions:', err);
+        showToast('Unable to fetch live GitHub contributions. Falling back to local data.', 'warning');
+        return {};
+      }
+    }
+
+    async getRepositories() {
+      try {
+        const res = await fetch('/api/github/repositories');
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.success && Array.isArray(data.repositories) ? data.repositories : [];
+      } catch (err) {
+        console.warn('Error fetching live repositories:', err);
+        return [];
+      }
+    }
+
+    async getRecentActivity() {
+      try {
+        const res = await fetch('/api/github/activity');
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.success && Array.isArray(data.activities) ? data.activities : [];
+      } catch (err) {
+        console.warn('Error fetching live GitHub activity:', err);
+        return [];
+      }
+    }
+
+    async addActivity() {
+      showToast('You are in Live GitHub Mode. Your activity is synced with your live GitHub account.', 'info');
+      return null;
+    }
+
+    async updateActivity() {
+      showToast('You are in Live GitHub Mode. Modify contributions directly in your GitHub repositories.', 'info');
+      return null;
+    }
+
+    async deleteActivity() {
+      showToast('You are in Live GitHub Mode. Contributions are managed on GitHub.', 'info');
+      return false;
+    }
+
+    async generateDemo() {
+      showToast('Demo generator is disabled in Live GitHub Mode. Disconnect to customize demo data.', 'info');
+      return {};
+    }
+
+    async resetAll() {
+      this.cache = {};
+      showToast('Cleared cached GitHub data.', 'info');
+      return {};
+    }
+
+    clearCache() {
+      this.cache = {};
+    }
+  }
+
+  // ==========================================================================
+  // 4. DEMO DATA GENERATOR WITH REALISTIC PATTERNS (Section 4)
+  // ==========================================================================
+
+  function pseudoRandom(seed) {
+    let s = Math.sin(seed) * 10000;
+    return s - Math.floor(s);
+  }
+
+  function generateDemoYearData(year, intensity = 'normal') {
+    const data = {};
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    const totalDays = isLeap ? 366 : 365;
+
+    let activeProbWeekday = 0.70;
+    let activeProbWeekend = 0.30;
+    let minContrib = 1;
+    let maxContrib = 8;
+
+    if (intensity === 'low') {
+      activeProbWeekday = 0.40;
+      activeProbWeekend = 0.15;
+      maxContrib = 4;
+    } else if (intensity === 'high') {
+      activeProbWeekday = 0.88;
+      activeProbWeekend = 0.55;
+      minContrib = 2;
+      maxContrib = 14;
+    }
+
+    const todaySim = new Date('2026-10-07T00:00:00');
+    let vacationDaysLeft = 0;
+
+    for (let dayIdx = 0; dayIdx < totalDays; dayIdx++) {
+      const currentDate = new Date(year, 0, 1 + dayIdx);
+      const dateStr = formatDateToISO(currentDate);
+
+      if (year === 2026 && currentDate > todaySim) {
+        continue;
+      }
+
+      const dayOfWeek = currentDate.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+      const seed = (year * 1000) + dayIdx * 7.13 + (dayOfWeek * 0.31);
+      const r1 = pseudoRandom(seed);
+      const r2 = pseudoRandom(seed + 1.6);
+      const r3 = pseudoRandom(seed + 3.2);
+
+      if (vacationDaysLeft > 0) {
+        vacationDaysLeft--;
+        continue;
+      } else if (r1 < 0.025 && dayIdx > 30 && dayIdx < totalDays - 40) {
+        vacationDaysLeft = Math.floor(r2 * 4) + 2;
+        continue;
+      }
+
+      const prob = isWeekend ? activeProbWeekend : activeProbWeekday;
+      if (r1 < prob) {
+        let count;
+        if (r2 > 0.90) {
+          count = Math.floor(r3 * (maxContrib + 4)) + 6;
+        } else if (r2 < 0.35) {
+          count = Math.floor(r3 * 2) + 1;
+        } else {
+          count = Math.floor(r3 * (maxContrib - minContrib + 1)) + minContrib;
+        }
+
+        let commits = Math.max(1, Math.round(count * 0.70));
+        let remaining = count - commits;
+        let prs = 0;
+        let issues = 0;
+        let reviews = 0;
+
+        if (remaining > 0) {
+          if (r2 > 0.6) {
+            prs = Math.min(remaining, Math.floor(pseudoRandom(seed + 4) * 2) + 1);
+            remaining -= prs;
+          }
+        }
+        if (remaining > 0) {
+          if (r3 > 0.5) {
+            reviews = Math.min(remaining, Math.floor(pseudoRandom(seed + 5) * 2) + 1);
+            remaining -= reviews;
+          }
+        }
+        if (remaining > 0) {
+          issues = remaining;
+        }
+
+        const total = commits + prs + issues + reviews;
+        const repoIdx = Math.floor(r2 * DEMO_REPOSITORIES.length);
+        const primaryRepo = DEMO_REPOSITORIES[repoIdx];
+
+        const repos = [primaryRepo];
+        if (total > 6 && r3 > 0.4) {
+          const secondRepo = DEMO_REPOSITORIES[(repoIdx + 1) % DEMO_REPOSITORIES.length];
+          repos.push(secondRepo);
+        }
+
+        const sampleNotes = [
+          `feat: implement core workflow in ${primaryRepo}`,
+          `fix: resolve edge-case serialization bug`,
+          `refactor: optimize rendering pipeline and performance`,
+          `docs: update API specification and architecture guide`,
+          `test: add manual and integration test suites`,
+          `perf: reduce memory allocation in background task`
+        ];
+        const note = sampleNotes[Math.floor(r1 * sampleNotes.length)];
+
+        data[dateStr] = {
+          date: dateStr,
+          commits,
+          pullRequests: prs,
+          issues,
+          codeReviews: reviews,
+          total,
+          repositories: repos,
+          primaryRepo,
+          note
+        };
+      }
+    }
+
+    return data;
+  }
+
+  // ==========================================================================
+  // 5. CALCULATION ENGINES: STATISTICS, STREAKS & CONSISTENCY (Sections 13, 14, 15)
+  // ==========================================================================
+
+  function calculateStatistics(yearData, year, filterType = 'all', repoFilter = null) {
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    const totalDaysInYear = isLeap ? 366 : 365;
+
+    let totalContributions = 0;
+    let totalCommits = 0;
+    let totalPRs = 0;
+    let totalIssues = 0;
+    let totalReviews = 0;
+    let activeDays = 0;
+    let weekendContributions = 0;
+
+    let bestDay = { count: 0, date: null };
+    const monthVolumes = new Array(12).fill(0);
+    const weekdayVolumes = new Array(7).fill(0);
+    const repoSet = new Set();
+
+    Object.keys(yearData || {}).forEach((dateStr) => {
+      const entry = yearData[dateStr];
+      if (!entry) return;
+
+      if (repoFilter && !entry.repositories.includes(repoFilter)) {
+        return;
+      }
+
+      let count = 0;
+      if (filterType === 'all') count = entry.total || 0;
+      else if (filterType === 'commits') count = entry.commits || 0;
+      else if (filterType === 'prs') count = entry.pullRequests || 0;
+      else if (filterType === 'issues') count = entry.issues || 0;
+      else if (filterType === 'reviews') count = entry.codeReviews || 0;
+
+      if (count > 0) {
+        totalContributions += count;
+        totalCommits += (entry.commits || 0);
+        totalPRs += (entry.pullRequests || 0);
+        totalIssues += (entry.issues || 0);
+        totalReviews += (entry.codeReviews || 0);
+        activeDays++;
+
+        (entry.repositories || []).forEach((r) => repoSet.add(r));
+
+        const d = parseISODate(dateStr);
+        const month = d.getMonth();
+        const weekday = d.getDay();
+
+        monthVolumes[month] += count;
+        weekdayVolumes[weekday] += count;
+
+        if (weekday === 0 || weekday === 6) {
+          weekendContributions += count;
+        }
+
+        if (count > bestDay.count) {
+          bestDay = { count, date: dateStr };
+        }
+      }
+    });
+
+    const avgPerActiveDay = activeDays > 0 ? (totalContributions / activeDays).toFixed(1) : '0.0';
+
+    let effectiveElapsedDays = totalDaysInYear;
+    if (year === 2026) {
+      const start = new Date(2026, 0, 1);
+      const end = new Date(2026, 9, 7);
+      effectiveElapsedDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    }
+    const activePct = effectiveElapsedDays > 0 ? ((activeDays / effectiveElapsedDays) * 100).toFixed(1) : '0.0';
+
+    const streakResult = calculateStreaks(yearData, year, filterType, repoFilter);
+
+    let bestMonthIdx = 0;
+    let bestMonthVal = 0;
+    monthVolumes.forEach((val, idx) => {
+      if (val > bestMonthVal) {
+        bestMonthVal = val;
+        bestMonthIdx = idx;
+      }
+    });
+
+    let bestWeekdayIdx = 1;
+    let bestWeekdayVal = -1;
+    weekdayVolumes.forEach((val, idx) => {
+      if (val > bestWeekdayVal) {
+        bestWeekdayVal = val;
+        bestWeekdayIdx = idx;
+      }
+    });
+
+    const consistency = calculateConsistencyScore({
+      activeDays,
+      effectiveElapsedDays,
+      currentStreak: streakResult.currentStreak,
+      longestStreak: streakResult.longestStreak,
+      totalContributions,
+      weekdayVolumes,
+      monthVolumes
+    });
+
+    return {
+      totalContributions,
+      totalCommits,
+      totalPRs,
+      totalIssues,
+      totalReviews,
+      activeDays,
+      activePct,
+      avgPerActiveDay,
+      currentStreak: streakResult.currentStreak,
+      longestStreak: streakResult.longestStreak,
+      bestMonth: bestMonthVal > 0 ? MONTH_NAMES_FULL[bestMonthIdx] : '--',
+      bestMonthVolume: bestMonthVal,
+      bestDayCount: bestDay.count,
+      bestDayDate: bestDay.date ? formatFriendlyDate(bestDay.date) : 'None recorded',
+      bestWeekday: bestWeekdayVal > 0 ? WEEKDAY_NAMES_FULL[bestWeekdayIdx] : '--',
+      bestWeekdayVolume: bestWeekdayVal,
+      consistencyScore: consistency.score,
+      consistencyDesc: consistency.description,
+      weekendContributions,
+      activeReposCount: repoSet.size || (appState.mode === 'live' ? 0 : DEMO_REPOSITORIES.length),
+      monthVolumes,
+      weekdayVolumes
+    };
+  }
+
+  function calculateStreaks(yearData, year, filterType = 'all', repoFilter = null) {
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    const totalDays = isLeap ? 366 : 365;
+
+    function isDayActive(dateStr) {
+      const entry = (yearData || {})[dateStr];
+      if (!entry) return false;
+      if (repoFilter && !entry.repositories.includes(repoFilter)) return false;
+      if (filterType === 'all') return entry.total > 0;
+      if (filterType === 'commits') return entry.commits > 0;
+      if (filterType === 'prs') return entry.pullRequests > 0;
+      if (filterType === 'issues') return entry.issues > 0;
+      if (filterType === 'reviews') return entry.codeReviews > 0;
+      return false;
+    }
+
+    let longestStreak = 0;
+    let runningStreak = 0;
+
+    const refDate = year === 2026 ? new Date('2026-10-07T00:00:00') : new Date(year, 11, 31);
+
+    for (let dayIdx = 0; dayIdx < totalDays; dayIdx++) {
+      const curDate = new Date(year, 0, 1 + dayIdx);
+      if (curDate > refDate) break;
+
+      const dateStr = formatDateToISO(curDate);
+      if (isDayActive(dateStr)) {
+        runningStreak++;
+        if (runningStreak > longestStreak) {
+          longestStreak = runningStreak;
+        }
+      } else {
+        runningStreak = 0;
+      }
+    }
+
+    let currentStreak = 0;
+    let checkDate = new Date(refDate);
+
+    const todayStr = formatDateToISO(checkDate);
+    const isTodayActive = isDayActive(todayStr);
+
+    if (isTodayActive) {
+      currentStreak++;
+      while (true) {
+        checkDate.setDate(checkDate.getDate() - 1);
+        if (checkDate.getFullYear() !== year) break;
+        const prevStr = formatDateToISO(checkDate);
+        if (isDayActive(prevStr)) {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+    } else {
+      checkDate.setDate(checkDate.getDate() - 1);
+      if (checkDate.getFullYear() === year) {
+        const yestStr = formatDateToISO(checkDate);
+        if (isDayActive(yestStr)) {
+          currentStreak = 1;
+          while (true) {
+            checkDate.setDate(checkDate.getDate() - 1);
+            if (checkDate.getFullYear() !== year) break;
+            const prevStr = formatDateToISO(checkDate);
+            if (isDayActive(prevStr)) {
+              currentStreak++;
+            } else {
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    return {
+      currentStreak,
+      longestStreak
+    };
+  }
+
+  function calculateConsistencyScore({
+    activeDays,
+    effectiveElapsedDays,
+    currentStreak,
+    longestStreak,
+    totalContributions,
+    weekdayVolumes,
+    monthVolumes
+  }) {
+    if (activeDays === 0 || effectiveElapsedDays === 0) {
+      return {
+        score: 0,
+        description: 'No recorded activity yet in this period.'
+      };
+    }
+
+    const activeRatio = Math.min(1, activeDays / effectiveElapsedDays);
+    const p1 = activeRatio * 40;
+
+    const streakRatio = Math.min(1, longestStreak / 21);
+    const p2 = streakRatio * 25;
+
+    let activeWeekdays = 0;
+    for (let w = 1; w <= 5; w++) {
+      if (weekdayVolumes[w] > 0) activeWeekdays++;
+    }
+    const p3 = (activeWeekdays / 5) * 20;
+
+    const activeMonths = monthVolumes.filter((v) => v > 0).length;
+    const p4 = (activeMonths / 12) * 15;
+
+    const rawScore = Math.round(p1 + p2 + p3 + p4);
+    const score = Math.max(0, Math.min(100, rawScore));
+
+    let description = '';
+    if (score >= 88) {
+      description = 'Exceptional consistency — daily cadence spread across all weeks.';
+    } else if (score >= 75) {
+      description = 'High consistency — steady habit with active momentum.';
+    } else if (score >= 60) {
+      description = 'Solid consistency — regular coding bursts with minor gaps.';
+    } else if (score >= 40) {
+      description = 'Moderate consistency — intermittent activity with occasional pauses.';
+    } else {
+      description = 'Developing consistency — sporadic contributions across the calendar.';
+    }
+
+    return { score, description };
+  }
+
+  // ==========================================================================
+  // 6. APPLICATION STATE
+  // ==========================================================================
+
+  const demoProvider = new DemoDataProvider();
+  const githubProvider = new GitHubDataProvider();
+
+  const appState = {
+    mode: 'demo', // 'demo' or 'live'
+    currentProvider: demoProvider,
+    authenticatedUser: null,
+    selectedYear: 2026,
+    activeFilter: 'all',
+    activeRepoFilter: null,
+    currentTheme: 'dark',
+    weeklyGoal: demoProvider.getWeeklyGoal(),
+    selectedDate: null,
+    activeModal: null,
+    cachedLiveRepos: [],
+    cachedLiveActivities: []
+  };
+
+  // ==========================================================================
+  // 7. RENDERERS: HEATMAP, CHARTS, METRICS & FEEDS
+  // ==========================================================================
+
+  async function renderAll() {
+    const yearData = await appState.currentProvider.getYearData(appState.selectedYear);
+    const stats = calculateStatistics(yearData, appState.selectedYear, appState.activeFilter, appState.activeRepoFilter);
+
+    renderModeAndAuthUI();
+    renderProfileCard(stats);
+    renderMetricCards(stats);
+    renderContributionHeatmap(yearData, stats);
+    renderWeeklyAnalytics(stats);
+    renderWeeklyGoal(yearData);
+    renderMonthlyAnalytics(stats);
+    renderContributionTrend(yearData);
+    await renderRepositoryAnalytics(yearData);
+    await renderRecentActivity(yearData);
+    renderAchievements(stats);
+    renderRepoFilterBadge();
+  }
+
+  function renderModeAndAuthUI() {
+    if (appState.mode === 'live' && appState.authenticatedUser) {
+      // Live Mode
+      if (DOM.dashboardModeBadge) {
+        DOM.dashboardModeBadge.className = 'mode-badge live-mode';
+      }
+      setText(DOM.modeTitleText, 'Live GitHub Data');
+      setText(DOM.modeDescText, `Connected as @${appState.authenticatedUser.login}`);
+      setText(DOM.heatmapModeTag, 'LIVE GITHUB');
+      setText(DOM.statReposSub, 'Connected repositories');
+
+      if (DOM.btnConnectGithub) DOM.btnConnectGithub.style.display = 'none';
+      if (DOM.userConnectedBadge) DOM.userConnectedBadge.style.display = 'inline-flex';
+      if (DOM.headerUserAvatar) DOM.headerUserAvatar.src = appState.authenticatedUser.avatar_url || '';
+      setText(DOM.headerUserName, `@${appState.authenticatedUser.login}`);
+    } else {
+      // Demo Mode
+      if (DOM.dashboardModeBadge) {
+        DOM.dashboardModeBadge.className = 'mode-badge demo-mode';
+      }
+      setText(DOM.modeTitleText, 'Demo Data');
+      setText(DOM.modeDescText, 'Local-first browser simulation. Not connected to external GitHub accounts.');
+      setText(DOM.heatmapModeTag, 'DEMO DATA');
+      setText(DOM.statReposSub, 'Demo projects');
+
+      if (DOM.btnConnectGithub) DOM.btnConnectGithub.style.display = 'inline-flex';
+      if (DOM.userConnectedBadge) DOM.userConnectedBadge.style.display = 'none';
+    }
+  }
+
+  function renderProfileCard(stats) {
+    if (appState.mode === 'live' && appState.authenticatedUser) {
+      const u = appState.authenticatedUser;
+      setText(DOM.profUserName, u.name || u.login);
+      setText(DOM.profUserRole, `@${u.login} • GitHub Contributor`);
+      setText(DOM.profUserBio, u.bio || 'Active developer visualizing contributions on GitHub Green Squares.');
+
+      if (DOM.profAvatarImg) {
+        DOM.profAvatarImg.src = u.avatar_url;
+        DOM.profAvatarImg.style.display = 'block';
+      }
+      if (DOM.profAvatarFallback) DOM.profAvatarFallback.style.display = 'none';
+
+      setText(DOM.profStatusLabel, 'Live Connected');
+      if (DOM.profStatusPill) DOM.profStatusPill.className = 'profile-status-badge status-live';
+
+      if (DOM.profGithubMeta) DOM.profGithubMeta.style.display = 'flex';
+      setText(DOM.profGhRepos, `${u.public_repos} Public Repos`);
+      setText(DOM.profGhFollowers, `${u.followers} Followers`);
+      setText(DOM.profGhFollowing, `${u.following} Following`);
+      if (DOM.profGithubLink) {
+        DOM.profGithubLink.href = u.html_url || `https://github.com/${u.login}`;
+        DOM.profGithubLink.style.display = 'inline-flex';
+      }
+    } else {
+      setText(DOM.profUserName, 'Soman Singhal');
+      setText(DOM.profUserRole, 'Developer Analytics Dashboard • Full-Stack Contributor');
+      setText(DOM.profUserBio, 'Visualizing commits, pull requests, issues, and code reviews across demo repositories.');
+
+      if (DOM.profAvatarImg) DOM.profAvatarImg.style.display = 'none';
+      if (DOM.profAvatarFallback) DOM.profAvatarFallback.style.display = 'flex';
+      setText(DOM.profAvatarInitials, 'SS');
+
+      setText(DOM.profStatusLabel, 'Demo Dataset');
+      if (DOM.profStatusPill) DOM.profStatusPill.className = 'profile-status-badge';
+
+      if (DOM.profGithubMeta) DOM.profGithubMeta.style.display = 'none';
+      if (DOM.profGithubLink) DOM.profGithubLink.style.display = 'none';
+    }
+
+    setText(DOM.profTotalContrib, stats.totalContributions.toLocaleString());
+    setText(DOM.profYearLabel, `${appState.selectedYear} Activity (${appState.activeFilter.toUpperCase()})`);
+    setText(DOM.profCurrentStreak, `${stats.currentStreak} ${stats.currentStreak === 1 ? 'day' : 'days'}`);
+    setText(DOM.profLongestStreak, `${stats.longestStreak} ${stats.longestStreak === 1 ? 'day' : 'days'}`);
+    setText(DOM.profActiveDays, stats.activeDays.toLocaleString());
+    setText(DOM.profActivePct, `${stats.activePct}% of year`);
+  }
+
+  function renderMetricCards(stats) {
+    setText(DOM.statAvgContrib, stats.avgPerActiveDay);
+    setText(DOM.statCurrentStreak, `${stats.currentStreak} ${stats.currentStreak === 1 ? 'day' : 'days'}`);
+    if (DOM.statStreakMsg) {
+      if (stats.currentStreak >= 14) DOM.statStreakMsg.textContent = 'Unstoppable momentum 🔥';
+      else if (stats.currentStreak >= 7) DOM.statStreakMsg.textContent = 'Weekly streak active 🔥';
+      else if (stats.currentStreak >= 3) DOM.statStreakMsg.textContent = 'Building consistency ✨';
+      else if (stats.currentStreak > 0) DOM.statStreakMsg.textContent = 'Streak started 🌱';
+      else DOM.statStreakMsg.textContent = 'Ready for your next commit';
+    }
+    setText(DOM.statLongestStreak, `${stats.longestStreak} ${stats.longestStreak === 1 ? 'day' : 'days'}`);
+    setText(DOM.statBestMonth, stats.bestMonth);
+    setText(DOM.statBestMonthVol, `${stats.bestMonthVolume.toLocaleString()} contributions`);
+    setText(DOM.statBestDay, `${stats.bestDayCount} contributions`);
+    setText(DOM.statBestDayDate, stats.bestDayDate);
+    setText(DOM.statBestWeekday, stats.bestWeekday);
+    setText(DOM.statBestWeekdayVol, `${stats.bestWeekdayVolume.toLocaleString()} contributions`);
+    setText(DOM.statConsistencyScore, `${stats.consistencyScore} / 100`);
+    setText(DOM.statConsistencyDesc, stats.consistencyDesc);
+    setText(DOM.statActiveRepos, stats.activeReposCount);
+  }
+
+  function renderContributionHeatmap(yearData, stats) {
+    if (!DOM.heatmapCalendar) return;
+    DOM.heatmapCalendar.innerHTML = '';
+
+    const year = appState.selectedYear;
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    const totalDays = isLeap ? 366 : 365;
+
+    const jan1 = new Date(year, 0, 1);
+    const startDayOfWeek = jan1.getDay();
+    const totalWeeks = Math.ceil((totalDays + startDayOfWeek) / 7);
+
+    // Month headers
+    const monthsRow = document.createElement('div');
+    monthsRow.className = 'heatmap-months-row';
+    const monthSpacer = document.createElement('div');
+    monthsRow.appendChild(monthSpacer);
+
+    const monthStartWeeks = new Array(12).fill(-1);
+    for (let m = 0; m < 12; m++) {
+      const firstOfMonth = new Date(year, m, 1);
+      const dayOfYear = Math.floor((firstOfMonth - jan1) / (1000 * 60 * 60 * 24));
+      const weekCol = Math.floor((dayOfYear + startDayOfWeek) / 7);
+      monthStartWeeks[m] = weekCol;
+    }
+
+    let lastRenderedCol = -1;
+    for (let w = 0; w < totalWeeks; w++) {
+      const mIdx = monthStartWeeks.indexOf(w);
+      if (mIdx !== -1 && (w - lastRenderedCol >= 3 || lastRenderedCol === -1)) {
+        const mLabel = document.createElement('div');
+        mLabel.className = 'heatmap-month-label';
+        mLabel.textContent = MONTH_NAMES_SHORT[mIdx];
+        monthsRow.appendChild(mLabel);
+        lastRenderedCol = w;
+      }
+    }
+    DOM.heatmapCalendar.appendChild(monthsRow);
+
+    // Heatmap body
+    const heatmapBody = document.createElement('div');
+    heatmapBody.className = 'heatmap-body';
+
+    // Weekdays column (Mon, Wed, Fri)
+    const daysCol = document.createElement('div');
+    daysCol.className = 'heatmap-days-col';
+    const dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+    dayLabels.forEach((lbl) => {
+      const dl = document.createElement('div');
+      dl.className = 'heatmap-day-label';
+      dl.textContent = lbl;
+      daysCol.appendChild(dl);
+    });
+    heatmapBody.appendChild(daysCol);
+
+    const weeksContainer = document.createElement('div');
+    weeksContainer.className = 'heatmap-weeks-container';
+
+    let currentDayIdx = 0;
+
+    for (let w = 0; w < totalWeeks; w++) {
+      const weekCol = document.createElement('div');
+      weekCol.className = 'heatmap-week-col';
+      weekCol.setAttribute('role', 'row');
+
+      for (let d = 0; d < 7; d++) {
+        if ((w === 0 && d < startDayOfWeek) || currentDayIdx >= totalDays) {
+          const emptyCell = document.createElement('div');
+          emptyCell.className = 'contrib-cell empty-cell';
+          emptyCell.setAttribute('aria-hidden', 'true');
+          weekCol.appendChild(emptyCell);
+          continue;
+        }
+
+        const currentDate = new Date(year, 0, 1 + currentDayIdx);
+        const dateStr = formatDateToISO(currentDate);
+        const entry = (yearData || {})[dateStr] || null;
+
+        let count = 0;
+        let commits = 0;
+        let prs = 0;
+        let issues = 0;
+        let reviews = 0;
+        let repos = [];
+
+        if (entry) {
+          commits = entry.commits || 0;
+          prs = entry.pullRequests || 0;
+          issues = entry.issues || 0;
+          reviews = entry.codeReviews || 0;
+          repos = entry.repositories || [];
+
+          if (appState.activeRepoFilter && !repos.includes(appState.activeRepoFilter)) {
+            count = 0;
+          } else {
+            if (appState.activeFilter === 'all') count = entry.total || 0;
+            else if (appState.activeFilter === 'commits') count = commits;
+            else if (appState.activeFilter === 'prs') count = prs;
+            else if (appState.activeFilter === 'issues') count = issues;
+            else if (appState.activeFilter === 'reviews') count = reviews;
+          }
+        }
+
+        const level = getIntensityLevel(count);
+
+        const cell = document.createElement('div');
+        cell.className = `contrib-cell level-${level}`;
+        cell.setAttribute('tabindex', '0');
+        cell.setAttribute('role', 'gridcell');
+        cell.setAttribute('data-date', dateStr);
+        cell.setAttribute('data-count', String(count));
+        cell.setAttribute('data-level', String(level));
+        cell.setAttribute('aria-label', `${formatFriendlyDate(dateStr)}: ${count} contributions`);
+
+        cell.addEventListener('mouseenter', (e) => {
+          showHeatmapTooltip(e, {
+            dateStr,
+            count,
+            commits,
+            prs,
+            issues,
+            reviews,
+            repos
+          });
+        });
+        cell.addEventListener('mouseleave', hideHeatmapTooltip);
+
+        cell.addEventListener('focus', (e) => {
+          showHeatmapTooltip(e, {
+            dateStr,
+            count,
+            commits,
+            prs,
+            issues,
+            reviews,
+            repos
+          });
+        });
+        cell.addEventListener('blur', hideHeatmapTooltip);
+
+        cell.addEventListener('click', () => {
+          openDayDetailsModal(dateStr);
+        });
+
+        cell.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openDayDetailsModal(dateStr);
+          }
+        });
+
+        weekCol.appendChild(cell);
+        currentDayIdx++;
+      }
+
+      weeksContainer.appendChild(weekCol);
+    }
+
+    heatmapBody.appendChild(weeksContainer);
+    DOM.heatmapCalendar.appendChild(heatmapBody);
+  }
+
   function getIntensityLevel(count) {
     if (!count || count <= 0) return 0;
-    if (count <= 3) return 1;
-    if (count <= 6) return 2;
+    if (count <= 2) return 1;
+    if (count <= 5) return 2;
     if (count <= 9) return 3;
     return 4;
   }
 
-  /**
-   * Generate realistic demo dataset for a specified year
-   */
-  function generateDemoDataForYear(year, customSeed) {
-    const seed = customSeed || year * 997 + 104729;
-    const rng = createSeededRandom(seed);
-    const data = {};
-    const recentActivityList = [];
+  function renderWeeklyAnalytics(stats) {
+    if (!DOM.weeklyAnalyticsChart) return;
+    DOM.weeklyAnalyticsChart.innerHTML = '';
 
-    // Reference today date in 2026 simulation
-    const today = new Date(2026, 9, 7); // Oct 7, 2026
-    const isCurrentSimYear = (year === 2026);
+    const dayIndices = [1, 2, 3, 4, 5, 6, 0];
+    const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-    const startDate = new Date(year, 0, 1);
-    const endDate = new Date(year, 11, 31);
-    const cur = new Date(startDate);
+    let maxVol = 0;
+    let totalVol = 0;
+    dayIndices.forEach((idx) => {
+      const vol = stats.weekdayVolumes[idx] || 0;
+      if (vol > maxVol) maxVol = vol;
+      totalVol += vol;
+    });
 
-    // Build realistic contribution clusters (simulate sprints and weekends)
-    let sprintCountdown = 0;
-    let sprintIntensity = 1;
+    const dailyAvg = (totalVol / 7).toFixed(1);
+    setHTML(DOM.weeklyPeakInfo, `Peak: <strong>${stats.bestWeekday}</strong>`);
+    setHTML(DOM.weeklyAvgInfo, `Daily Average: <strong>${dailyAvg} contributions</strong>`);
 
-    while (cur <= endDate) {
-      const dateKey = formatDateKey(cur);
-      const dayOfWeek = cur.getDay(); // 0 = Sun, 6 = Sat
-      const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+    dayIndices.forEach((dayIdx, i) => {
+      const vol = stats.weekdayVolumes[dayIdx] || 0;
+      const pct = maxVol > 0 ? Math.max(6, Math.round((vol / maxVol) * 100)) : 6;
 
-      // Sprints: periodically boost commit density
-      if (sprintCountdown <= 0) {
-        if (rng() > 0.6) {
-          sprintCountdown = Math.floor(rng() * 12) + 5;
-          sprintIntensity = rng() > 0.4 ? 2 : 1;
-        } else {
-          sprintCountdown = Math.floor(rng() * 6) + 2;
-          sprintIntensity = 0;
-        }
+      const colWrap = document.createElement('div');
+      colWrap.className = 'weekly-col-wrap';
+      colWrap.setAttribute('tabindex', '0');
+      colWrap.setAttribute('aria-label', `${dayLabels[i]}: ${vol} contributions`);
+
+      colWrap.innerHTML = `
+        <span class="bar-val-badge">${vol}</span>
+        <div class="bar-groove">
+          <div class="bar-stem" style="height: ${pct}%;"></div>
+        </div>
+        <span class="bar-name-label">${dayLabels[i]}</span>
+      `;
+
+      colWrap.addEventListener('mouseenter', (e) => {
+        showGenericTooltip(e, `${WEEKDAY_NAMES_FULL[dayIdx]}: ${vol} contributions (${pct}% of peak)`);
+      });
+      colWrap.addEventListener('mouseleave', hideHeatmapTooltip);
+      colWrap.addEventListener('focus', (e) => {
+        showGenericTooltip(e, `${WEEKDAY_NAMES_FULL[dayIdx]}: ${vol} contributions (${pct}% of peak)`);
+      });
+      colWrap.addEventListener('blur', hideHeatmapTooltip);
+
+      DOM.weeklyAnalyticsChart.appendChild(colWrap);
+    });
+  }
+
+  function renderWeeklyGoal(yearData) {
+    const target = appState.weeklyGoal;
+    setVal(DOM.goalTargetInput, target);
+    setVal(DOM.settingsGoalInput, target);
+    setText(DOM.goalTargetDisplay, target);
+
+    const refDate = appState.selectedYear === 2026 ? new Date('2026-10-07T00:00:00') : new Date(appState.selectedYear, 11, 28);
+    const dayOfWeek = refDate.getDay();
+    const distToMon = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+    const monday = new Date(refDate);
+    monday.setDate(monday.getDate() - distToMon);
+
+    let loggedThisWeek = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(d.getDate() + i);
+      const iso = formatDateToISO(d);
+      const entry = (yearData || {})[iso];
+      if (entry) {
+        if (appState.activeFilter === 'all') loggedThisWeek += (entry.total || 0);
+        else if (appState.activeFilter === 'commits') loggedThisWeek += (entry.commits || 0);
+        else if (appState.activeFilter === 'prs') loggedThisWeek += (entry.pullRequests || 0);
+        else if (appState.activeFilter === 'issues') loggedThisWeek += (entry.issues || 0);
+        else if (appState.activeFilter === 'reviews') loggedThisWeek += (entry.codeReviews || 0);
+      }
+    }
+
+    const pct = Math.min(100, Math.round((loggedThisWeek / target) * 100));
+
+    setText(DOM.goalCurrentDisplay, loggedThisWeek);
+    setText(DOM.goalPercentDisplay, `${pct}%`);
+    if (DOM.goalProgressFill) DOM.goalProgressFill.style.width = `${pct}%`;
+    if (DOM.goalProgressBar) DOM.goalProgressBar.setAttribute('aria-valuenow', String(pct));
+
+    if (DOM.goalStatusIcon && DOM.goalStatusText) {
+      if (pct >= 100) {
+        DOM.goalStatusIcon.textContent = '🎉';
+        DOM.goalStatusText.textContent = `Weekly goal completed! (+${loggedThisWeek - target} surplus)`;
       } else {
-        sprintCountdown--;
+        const remaining = target - loggedThisWeek;
+        DOM.goalStatusIcon.textContent = '⏳';
+        DOM.goalStatusText.textContent = `${remaining} more contributions needed to hit your weekly goal`;
       }
-
-      // Base probability of committing
-      let commitProb = isWeekend ? 0.35 : 0.72;
-      if (sprintIntensity > 0) commitProb += 0.2;
-
-      // Ensure an impressive active streak leading up to simulated today
-      if (isCurrentSimYear) {
-        const diffDays = Math.floor((today - cur) / (1000 * 60 * 60 * 24));
-        if (diffDays >= 0 && diffDays <= 13) {
-          commitProb = 1.0; // Guaranteed streak for recent 14 days
-        }
-      }
-
-      let count = 0;
-      let repo = DEMO_REPOSITORIES[Math.floor(rng() * DEMO_REPOSITORIES.length)];
-
-      if (rng() < commitProb) {
-        // Commits count distribution
-        const rVal = rng();
-        if (rVal < 0.45) {
-          count = Math.floor(rng() * 3) + 1; // 1-3
-        } else if (rVal < 0.75) {
-          count = Math.floor(rng() * 3) + 4; // 4-6
-        } else if (rVal < 0.92) {
-          count = Math.floor(rng() * 3) + 7; // 7-9
-        } else {
-          count = Math.floor(rng() * 4) + 10; // 10-13
-        }
-      }
-
-      data[dateKey] = {
-        count: count,
-        repo: count > 0 ? repo : null,
-        note: count > 0 ? `Simulated commits for ${repo}` : null
-      };
-
-      // Collect some recent events for timeline
-      if (count > 0 && isCurrentSimYear && cur <= today) {
-        const diffDays = Math.floor((today - cur) / (1000 * 60 * 60 * 24));
-        if (diffDays <= 7) {
-          recentActivityList.push({
-            date: dateKey,
-            count: count,
-            repo: repo,
-            diffDays: diffDays,
-            msg: `Implemented performance enhancements in ${repo}`
-          });
-        }
-      }
-
-      // Next day
-      cur.setDate(cur.getDate() + 1);
-    }
-
-    recentActivityList.sort((a, b) => a.diffDays - b.diffDays);
-
-    return { data, recentActivityList };
-  }
-
-  // ==========================================================================
-  // 4. STORAGE / PERSISTENCE
-  // ==========================================================================
-
-  function saveState() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-    } catch (e) {
-      console.warn('Unable to persist to localStorage:', e);
     }
   }
 
-  function loadState() {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === 'object') {
-          appState = Object.assign(appState, parsed);
-        }
-      }
-    } catch (e) {
-      console.warn('Error reading from localStorage, initializing fresh state:', e);
-    }
+  function renderMonthlyAnalytics(stats) {
+    if (!DOM.monthlyAnalyticsChart) return;
+    DOM.monthlyAnalyticsChart.innerHTML = '';
 
-    // Ensure contributions exist for the current selected year
-    const currentYear = appState.selectedYear || 2026;
-    if (!appState.contributionsByYear[currentYear]) {
-      const generated = generateDemoDataForYear(currentYear);
-      appState.contributionsByYear[currentYear] = generated.data;
-      if (!appState.recentActivity || appState.recentActivity.length === 0) {
-        appState.recentActivity = generated.recentActivityList;
-      }
-    }
-
-    // Apply saved theme
-    if (appState.theme) {
-      document.documentElement.setAttribute('data-theme', appState.theme);
-      updateThemeButtonUI(appState.theme);
-    }
-
-    // Apply saved palette
-    if (appState.palette) {
-      document.documentElement.setAttribute('data-palette', appState.palette);
-      const paletteSelect = document.getElementById('palette-select');
-      if (paletteSelect) paletteSelect.value = appState.palette;
-    }
-
-    // Apply sound button UI
-    updateSoundButtonUI(appState.soundEnabled);
-  }
-
-  // ==========================================================================
-  // 5. TOAST NOTIFICATION SYSTEM
-  // ==========================================================================
-
-  function showToast(message, type = 'success', duration = 3500) {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-
-    const toast = document.createElement('div');
-    toast.className = `toast ${type === 'error' ? 'toast-error' : type === 'info' ? 'toast-info' : ''}`;
-    toast.setAttribute('role', 'alert');
-
-    const icon = type === 'error' ? '❌' : type === 'info' ? 'ℹ️' : '✅';
-
-    toast.innerHTML = `
-      <div class="toast-content">
-        <span class="toast-icon">${icon}</span>
-        <span class="toast-msg">${message}</span>
-      </div>
-      <button type="button" class="toast-close-btn" aria-label="Dismiss toast">✕</button>
-    `;
-
-    const closeBtn = toast.querySelector('.toast-close-btn');
-    closeBtn.addEventListener('click', () => {
-      removeToast(toast);
+    let maxVol = 0;
+    stats.monthVolumes.forEach((v) => {
+      if (v > maxVol) maxVol = v;
     });
 
-    container.appendChild(toast);
+    setHTML(DOM.monthlyBestInfo, `Most Active Month: <strong>${stats.bestMonth} (${stats.bestMonthVolume.toLocaleString()})</strong>`);
+    setHTML(DOM.monthlyTotalInfo, `Year Total: <strong>${stats.totalContributions.toLocaleString()} contributions</strong>`);
 
-    // Trigger enter animation
-    requestAnimationFrame(() => {
-      toast.classList.add('show');
+    stats.monthVolumes.forEach((vol, mIdx) => {
+      const pct = maxVol > 0 ? Math.max(5, Math.round((vol / maxVol) * 100)) : 5;
+
+      const colWrap = document.createElement('div');
+      colWrap.className = 'month-col-wrap';
+      colWrap.setAttribute('tabindex', '0');
+      colWrap.setAttribute('aria-label', `${MONTH_NAMES_FULL[mIdx]}: ${vol} contributions`);
+
+      colWrap.innerHTML = `
+        <span class="bar-val-badge">${vol}</span>
+        <div class="bar-groove">
+          <div class="bar-stem" style="height: ${pct}%;"></div>
+        </div>
+        <span class="bar-name-label">${MONTH_NAMES_SHORT[mIdx]}</span>
+      `;
+
+      colWrap.addEventListener('mouseenter', (e) => {
+        showGenericTooltip(e, `${MONTH_NAMES_FULL[mIdx]}: ${vol} contributions (${pct}% of peak)`);
+      });
+      colWrap.addEventListener('mouseleave', hideHeatmapTooltip);
+      colWrap.addEventListener('focus', (e) => {
+        showGenericTooltip(e, `${MONTH_NAMES_FULL[mIdx]}: ${vol} contributions (${pct}% of peak)`);
+      });
+      colWrap.addEventListener('blur', hideHeatmapTooltip);
+
+      DOM.monthlyAnalyticsChart.appendChild(colWrap);
     });
-
-    // Auto dismiss
-    const timer = setTimeout(() => {
-      removeToast(toast);
-    }, duration);
-
-    function removeToast(el) {
-      clearTimeout(timer);
-      el.classList.remove('show');
-      setTimeout(() => {
-        if (el.parentNode) el.parentNode.removeChild(el);
-      }, 300);
-    }
   }
 
-  // ==========================================================================
-  // 6. STATISTICS & CALCULATIONS
-  // ==========================================================================
+  function renderContributionTrend(yearData) {
+    if (!DOM.trendChartContainer) return;
+    DOM.trendChartContainer.innerHTML = '';
 
-  function calculateStatistics(year) {
-    const yearData = appState.contributionsByYear[year] || {};
-    let totalContributions = 0;
-    let activeDays = 0;
-    let bestDayCount = 0;
-    let bestDayDate = null;
-    const reposSeen = new Set();
-    const repoTotals = {};
-
-    DEMO_REPOSITORIES.forEach(r => repoTotals[r] = 0);
-
-    const sortedDates = Object.keys(yearData).sort();
-
-    sortedDates.forEach(dateStr => {
-      const item = yearData[dateStr];
-      const count = (item && item.count) || 0;
-      if (count > 0) {
-        totalContributions += count;
-        activeDays++;
-        if (item.repo) {
-          reposSeen.add(item.repo);
-          repoTotals[item.repo] = (repoTotals[item.repo] || 0) + count;
-        }
-
-        if (count > bestDayCount) {
-          bestDayCount = count;
-          bestDayDate = dateStr;
-        }
-      }
-    });
-
-    const avgContributions = activeDays > 0 ? (totalContributions / activeDays).toFixed(1) : '0.0';
-
-    // Calculate Longest Streak in this year
-    let longestStreak = 0;
-    let currentStreakCount = 0;
-
-    sortedDates.forEach(dateStr => {
-      const count = yearData[dateStr]?.count || 0;
-      if (count > 0) {
-        currentStreakCount++;
-        if (currentStreakCount > longestStreak) {
-          longestStreak = currentStreakCount;
-        }
-      } else {
-        currentStreakCount = 0;
-      }
-    });
-
-    // Calculate Current Streak ending today (simulated date or real date)
-    const currentStreak = calculateCurrentStreak(yearData);
-
-    return {
-      totalContributions,
-      activeDays,
-      avgContributions,
-      bestDayCount,
-      bestDayDate,
-      longestStreak,
-      currentStreak,
-      activeReposCount: reposSeen.size,
-      repoTotals
-    };
-  }
-
-  /**
-   * Calculate current streak backwards from today
-   */
-  function calculateCurrentStreak(yearData) {
-    const today = new Date(2026, 9, 7); // Oct 7, 2026
-    let streak = 0;
-    const checkDate = new Date(today);
-
-    while (true) {
-      const key = formatDateKey(checkDate);
-      const entry = yearData[key];
-      if (entry && entry.count > 0) {
-        streak++;
-        checkDate.setDate(checkDate.getDate() - 1);
-      } else {
-        break;
-      }
-    }
-
-    return streak;
-  }
-
-  /**
-   * Calculate Developer Consistency Score (0 - 100)
-   */
-  function calculateConsistencyScore(stats, weeklyGoalProgress) {
-    // 1. Active days ratio (weight 35)
-    const totalDaysInYear = 365;
-    const activeDaysRatio = Math.min(1, stats.activeDays / (totalDaysInYear * 0.6));
-    const activeScore = activeDaysRatio * 35;
-
-    // 2. Current streak factor (weight 35)
-    const streakFactor = Math.min(1, stats.currentStreak / 15);
-    const streakScore = streakFactor * 35;
-
-    // 3. Weekly goal progress factor (weight 30)
-    const goalRatio = Math.min(1, weeklyGoalProgress / 100);
-    const goalScore = goalRatio * 30;
-
-    const total = Math.round(activeScore + streakScore + goalScore);
-    return Math.min(100, Math.max(5, total));
-  }
-
-  // ==========================================================================
-  // 7. HEATMAP GENERATION & RENDERING
-  // ==========================================================================
-
-  function renderHeatmap() {
-    const container = document.getElementById('heatmap-graph');
-    if (!container) return;
-
+    const pointsCount = 24;
     const year = appState.selectedYear;
-    const yearData = appState.contributionsByYear[year] || {};
-    const activeFilter = appState.activeIntensityFilter;
-    const repoFilter = appState.selectedRepoFilter;
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    const totalDays = isLeap ? 366 : 365;
+    const daysPerPoint = Math.floor(totalDays / pointsCount);
 
-    // Determine calendar span: 53 weeks starting from Sunday on or before Jan 1
-    const jan1 = new Date(year, 0, 1);
-    const startOffset = jan1.getDay(); // 0 is Sunday
-    const calendarStart = new Date(jan1);
-    calendarStart.setDate(calendarStart.getDate() - startOffset);
+    const values = [];
+    const labels = [];
+    let peakVal = 0;
+    let peakLabel = '';
 
-    // Build weeks array (53 columns x 7 rows)
-    const weeks = [];
-    const walker = new Date(calendarStart);
+    for (let p = 0; p < pointsCount; p++) {
+      const startDay = p * daysPerPoint;
+      const endDay = Math.min(totalDays, (p + 1) * daysPerPoint);
+      let periodVol = 0;
 
-    for (let w = 0; w < 53; w++) {
-      const weekDays = [];
-      for (let d = 0; d < 7; d++) {
-        const dateKey = formatDateKey(walker);
-        const isInYear = walker.getFullYear() === year;
-        const entry = isInYear ? (yearData[dateKey] || { count: 0, repo: null }) : { count: 0, repo: null };
-        const level = getIntensityLevel(entry.count);
-
-        weekDays.push({
-          date: new Date(walker),
-          dateKey: dateKey,
-          count: entry.count,
-          level: level,
-          repo: entry.repo,
-          note: entry.note,
-          isInYear: isInYear
-        });
-
-        walker.setDate(walker.getDate() + 1);
-      }
-      weeks.push(weekDays);
-    }
-
-    // Build Month Header
-    let monthsHtml = '<div class="heatmap-months-row"><div class="heatmap-day-label"></div>';
-    let currentMonth = -1;
-    let colSpanCount = 0;
-    const monthSegments = [];
-
-    weeks.forEach((week, wIndex) => {
-      // Look at the month of the first day or middle day
-      const firstInYearDay = week.find(d => d.isInYear);
-      if (firstInYearDay) {
-        const m = firstInYearDay.date.getMonth();
-        if (m !== currentMonth) {
-          if (currentMonth !== -1) {
-            monthSegments.push({ month: currentMonth, span: colSpanCount });
-          }
-          currentMonth = m;
-          colSpanCount = 1;
-        } else {
-          colSpanCount++;
+      for (let d = startDay; d < endDay; d++) {
+        const curDate = new Date(year, 0, 1 + d);
+        if (year === 2026 && curDate > new Date('2026-10-07T00:00:00')) continue;
+        const iso = formatDateToISO(curDate);
+        const entry = (yearData || {})[iso];
+        if (entry) {
+          if (appState.activeFilter === 'all') periodVol += (entry.total || 0);
+          else if (appState.activeFilter === 'commits') periodVol += (entry.commits || 0);
+          else if (appState.activeFilter === 'prs') periodVol += (entry.pullRequests || 0);
+          else if (appState.activeFilter === 'issues') periodVol += (entry.issues || 0);
+          else if (appState.activeFilter === 'reviews') periodVol += (entry.codeReviews || 0);
         }
-      } else {
-        colSpanCount++;
       }
-    });
 
-    if (currentMonth !== -1) {
-      monthSegments.push({ month: currentMonth, span: colSpanCount });
+      values.push(periodVol);
+      const midDate = new Date(year, 0, 1 + Math.floor((startDay + endDay) / 2));
+      const lbl = `${MONTH_NAMES_SHORT[midDate.getMonth()]} ${midDate.getDate()}`;
+      labels.push(lbl);
+
+      if (periodVol > peakVal) {
+        peakVal = periodVol;
+        peakLabel = `${MONTH_NAMES_SHORT[midDate.getMonth()]} period`;
+      }
     }
 
-    monthSegments.forEach(seg => {
-      const monthLabel = MONTH_NAMES[seg.month];
-      monthsHtml += `<div class="heatmap-month-label" style="grid-column-end: span ${seg.span}">${monthLabel}</div>`;
-    });
-    monthsHtml += '</div>';
+    setText(DOM.trendPeakPeriod, peakLabel || 'Consistent pace');
+    const sum = values.reduce((a, b) => a + b, 0);
+    const weeklyVelocity = (sum / 52).toFixed(1);
+    setText(DOM.trendVelocityLabel, `~${weeklyVelocity} / week avg`);
 
-    // Build Heatmap Body
-    let bodyHtml = '<div class="heatmap-body">';
-    
-    // Day of week labels on left (Mon, Wed, Fri)
-    bodyHtml += `
-      <div class="heatmap-days-col" aria-hidden="true">
-        <div class="heatmap-day-label"></div>
-        <div class="heatmap-day-label">Mon</div>
-        <div class="heatmap-day-label"></div>
-        <div class="heatmap-day-label">Wed</div>
-        <div class="heatmap-day-label"></div>
-        <div class="heatmap-day-label">Fri</div>
-        <div class="heatmap-day-label"></div>
-      </div>
+    const svgWidth = 600;
+    const svgHeight = 150;
+    const padTop = 16;
+    const padBottom = 22;
+    const padLeft = 16;
+    const padRight = 16;
+    const chartW = svgWidth - padLeft - padRight;
+    const chartH = svgHeight - padTop - padBottom;
+
+    const maxChartVal = Math.max(10, peakVal * 1.15);
+
+    const coords = values.map((val, idx) => {
+      const x = padLeft + (idx / (pointsCount - 1)) * chartW;
+      const y = padTop + chartH - (val / maxChartVal) * chartH;
+      return { x, y, val, label: labels[idx] };
+    });
+
+    let linePathD = `M ${coords[0].x} ${coords[0].y}`;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const p0 = coords[i];
+      const p1 = coords[i + 1];
+      const cpx1 = p0.x + (p1.x - p0.x) / 2;
+      const cpy1 = p0.y;
+      const cpx2 = p0.x + (p1.x - p0.x) / 2;
+      const cpy2 = p1.y;
+      linePathD += ` C ${cpx1} ${cpy1}, ${cpx2} ${cpy2}, ${p1.x} ${p1.y}`;
+    }
+
+    const areaPathD = `${linePathD} L ${coords[coords.length - 1].x} ${padTop + chartH} L ${coords[0].x} ${padTop + chartH} Z`;
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+    svg.setAttribute('class', 'trend-svg');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', `Contribution velocity curve for ${year}`);
+
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    grad.setAttribute('id', 'trendGradient');
+    grad.setAttribute('x1', '0');
+    grad.setAttribute('y1', '0');
+    grad.setAttribute('x2', '0');
+    grad.setAttribute('y2', '1');
+
+    grad.innerHTML = `
+      <stop offset="0%" stop-color="#39d353" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#39d353" stop-opacity="0.0"/>
     `;
+    defs.appendChild(grad);
+    svg.appendChild(defs);
 
-    // Weeks columns
-    bodyHtml += '<div class="heatmap-weeks">';
+    const areaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    areaPath.setAttribute('d', areaPathD);
+    areaPath.setAttribute('fill', 'url(#trendGradient)');
+    svg.appendChild(areaPath);
 
-    weeks.forEach(week => {
-      bodyHtml += '<div class="heatmap-week">';
-      week.forEach(day => {
-        const levelClass = `level-${day.level}`;
-        
-        // Intensity Filtering
-        let filterClass = '';
-        if (activeFilter !== 'all') {
-          if (levelClass === activeFilter) {
-            filterClass = 'filtered-match';
-          } else {
-            filterClass = 'filtered-dim';
+    const linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    linePath.setAttribute('d', linePathD);
+    linePath.setAttribute('fill', 'none');
+    linePath.setAttribute('stroke', '#39d353');
+    linePath.setAttribute('stroke-width', '2.5');
+    linePath.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(linePath);
+
+    coords.forEach((pt) => {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', String(pt.x));
+      circle.setAttribute('cy', String(pt.y));
+      circle.setAttribute('r', '4');
+      circle.setAttribute('fill', '#39d353');
+      circle.setAttribute('stroke', '#0d1117');
+      circle.setAttribute('stroke-width', '1.5');
+      circle.setAttribute('tabindex', '0');
+      circle.setAttribute('aria-label', `${pt.label}: ${pt.val} contributions`);
+      circle.style.cursor = 'pointer';
+
+      circle.addEventListener('mouseenter', (e) => {
+        showGenericTooltip(e, `${pt.label}: ${pt.val} contributions`);
+      });
+      circle.addEventListener('mouseleave', hideHeatmapTooltip);
+      circle.addEventListener('focus', (e) => {
+        showGenericTooltip(e, `${pt.label}: ${pt.val} contributions`);
+      });
+      circle.addEventListener('blur', hideHeatmapTooltip);
+
+      svg.appendChild(circle);
+    });
+
+    DOM.trendChartContainer.appendChild(svg);
+  }
+
+  async function renderRepositoryAnalytics(yearData) {
+    if (!DOM.repoAnalyticsList) return;
+    DOM.repoAnalyticsList.innerHTML = '';
+
+    let repoList = [];
+
+    if (appState.mode === 'live' && appState.currentProvider instanceof GitHubDataProvider) {
+      if (!appState.cachedLiveRepos || appState.cachedLiveRepos.length === 0) {
+        appState.cachedLiveRepos = await appState.currentProvider.getRepositories();
+      }
+      repoList = (appState.cachedLiveRepos || []).map((r) => ({
+        name: r.name,
+        contributions: r.stars || 1,
+        activeDays: 1,
+        lastDate: r.updated_at ? r.updated_at.split('T')[0] : null,
+        url: r.html_url,
+        lang: r.language
+      }));
+    } else {
+      const repoStats = {};
+      DEMO_REPOSITORIES.forEach((name) => {
+        repoStats[name] = {
+          name,
+          contributions: 0,
+          activeDays: 0,
+          lastDate: null,
+          url: `https://github.com/somansinghal/${name}`,
+          lang: 'TypeScript'
+        };
+      });
+
+      let overallTotal = 0;
+      Object.keys(yearData || {}).sort().forEach((dateStr) => {
+        const entry = yearData[dateStr];
+        if (!entry) return;
+
+        (entry.repositories || []).forEach((repoName) => {
+          if (!repoStats[repoName]) {
+            repoStats[repoName] = { name: repoName, contributions: 0, activeDays: 0, lastDate: null, url: `https://github.com/somansinghal/${repoName}`, lang: 'TypeScript' };
           }
-        }
+          repoStats[repoName].contributions += (entry.total || 0);
+          repoStats[repoName].activeDays += 1;
+          repoStats[repoName].lastDate = dateStr;
+          overallTotal += (entry.total || 0);
+        });
+      });
 
-        // Repo Filtering
-        if (repoFilter) {
-          if (day.repo === repoFilter) {
-            filterClass = 'filtered-match';
-          } else {
-            filterClass = 'filtered-dim';
-          }
-        }
+      repoList = Object.values(repoStats).sort((a, b) => b.contributions - a.contributions);
+    }
 
-        const formattedDate = day.date.toLocaleDateString('en-GB', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
+    const totalVolume = repoList.reduce((acc, r) => acc + r.contributions, 0) || 1;
+
+    repoList.forEach((repo) => {
+      const pct = Math.round((repo.contributions / totalVolume) * 100);
+      const isSelected = appState.activeRepoFilter === repo.name;
+
+      const item = document.createElement('div');
+      item.className = `repo-entry-card ${isSelected ? 'active' : ''}`;
+      item.setAttribute('tabindex', '0');
+      item.setAttribute('role', 'button');
+      item.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      item.setAttribute('aria-label', `Filter by ${repo.name}`);
+
+      item.innerHTML = `
+        <div class="repo-entry-left">
+          <span class="repo-entry-icon">📦</span>
+          <div>
+            <div class="repo-entry-name">${escapeHtml(repo.name)}</div>
+            <div class="repo-entry-sub">${repo.activeDays} active days • Last: ${repo.lastDate ? formatFriendlyDate(repo.lastDate) : 'None'}</div>
+          </div>
+        </div>
+        <div class="repo-entry-right">
+          <div class="repo-pct-bar-wrap">
+            <div class="repo-pct-bar-fill" style="width: ${pct}%;"></div>
+          </div>
+          <span class="repo-pct-text">${pct}%</span>
+          <span class="pill-tag">${repo.contributions.toLocaleString()}</span>
+        </div>
+      `;
+
+      item.addEventListener('click', () => {
+        toggleRepoFilter(repo.name);
+      });
+
+      item.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleRepoFilter(repo.name);
+        }
+      });
+
+      DOM.repoAnalyticsList.appendChild(item);
+    });
+  }
+
+  async function renderRecentActivity(yearData) {
+    if (!DOM.recentActivityFeed) return;
+    DOM.recentActivityFeed.innerHTML = '';
+
+    if (appState.mode === 'live' && appState.currentProvider instanceof GitHubDataProvider) {
+      if (!appState.cachedLiveActivities || appState.cachedLiveActivities.length === 0) {
+        appState.cachedLiveActivities = await appState.currentProvider.getRecentActivity();
+      }
+
+      const activities = appState.cachedLiveActivities || [];
+      setText(DOM.activityStreamCount, `${activities.length} live events`);
+
+      if (activities.length === 0) {
+        DOM.recentActivityFeed.innerHTML = `
+          <div class="card-panel text-center" style="padding: 24px;">
+            <span style="font-size: 2rem;">📭</span>
+            <h4 style="margin-top: 8px;">No Recent Public Events</h4>
+            <p class="panel-subtext">No public events returned for this account.</p>
+          </div>
+        `;
+        return;
+      }
+
+      activities.slice(0, 15).forEach((evt) => {
+        const feedItem = document.createElement('div');
+        feedItem.className = 'feed-item';
+        feedItem.setAttribute('tabindex', '0');
+        feedItem.setAttribute('role', 'article');
+        feedItem.style.cursor = 'pointer';
+
+        feedItem.innerHTML = `
+          <div class="feed-marker">🟩</div>
+          <div class="feed-content">
+            <div class="feed-header-line">
+              <span class="feed-action">${evt.icon || '💻'} ${escapeHtml(evt.typeLabel || 'Activity')}</span>
+              <span class="feed-date">${formatFriendlyDate(evt.date)}</span>
+            </div>
+            <div class="feed-repo">${escapeHtml(evt.repository)}</div>
+            ${evt.message ? `<div class="feed-msg">"${escapeHtml(evt.message)}"</div>` : ''}
+          </div>
+        `;
+
+        feedItem.addEventListener('click', () => {
+          if (evt.url) window.open(evt.url, '_blank', 'noopener,noreferrer');
         });
 
-        const ariaDesc = day.count > 0 
-          ? `${day.count} contributions on ${formattedDate}`
-          : `No contributions on ${formattedDate}`;
-
-        bodyHtml += `
-          <button 
-            type="button"
-            class="contrib-cell ${levelClass} ${filterClass}" 
-            data-date="${day.dateKey}"
-            data-count="${day.count}"
-            data-level="${day.level}"
-            data-repo="${day.repo || ''}"
-            data-formatted-date="${formattedDate}"
-            aria-label="${ariaDesc}"
-            ${!day.isInYear ? 'tabindex="-1" style="visibility: hidden;"' : ''}
-          ></button>
-        `;
+        DOM.recentActivityFeed.appendChild(feedItem);
       });
-      bodyHtml += '</div>';
-    });
-
-    bodyHtml += '</div></div>';
-
-    container.innerHTML = monthsHtml + bodyHtml;
-
-    // Attach interaction handlers to cells
-    attachHeatmapEvents();
-  }
-
-  // ==========================================================================
-  // 8. HEATMAP INTERACTIONS (TOOLTIP & DETAIL MODAL)
-  // ==========================================================================
-
-  const tooltipEl = document.getElementById('heatmap-tooltip');
-
-  function attachHeatmapEvents() {
-    const cells = document.querySelectorAll('.contrib-cell');
-
-    cells.forEach(cell => {
-      cell.addEventListener('mouseenter', (e) => {
-        handleCellHover(e);
-        if (appState.paintMode && isMousePainting) {
-          paintCell(cell);
-        }
-      });
-
-      cell.addEventListener('mousedown', () => {
-        if (appState.paintMode) {
-          isMousePainting = true;
-          paintCell(cell);
-        }
-      });
-
-      cell.addEventListener('mouseleave', handleCellLeave);
-      cell.addEventListener('focus', handleCellHover);
-      cell.addEventListener('blur', handleCellLeave);
-      cell.addEventListener('click', handleCellClick);
-    });
-  }
-
-  function paintCell(cell) {
-    const dateKey = cell.getAttribute('data-date');
-    if (!dateKey) return;
-    const year = parseInt(dateKey.substring(0, 4), 10);
-    if (!appState.contributionsByYear[year]) {
-      appState.contributionsByYear[year] = {};
-    }
-
-    const brushLevels = { 0: 0, 1: 2, 2: 5, 3: 8, 4: 12 };
-    const commitCount = brushLevels[appState.paintBrush] !== undefined ? brushLevels[appState.paintBrush] : 12;
-    const repo = appState.selectedRepoFilter || 'Green-Square-Lab';
-
-    appState.contributionsByYear[year][dateKey] = {
-      count: commitCount,
-      repo: commitCount > 0 ? repo : null,
-      note: commitCount > 0 ? `Custom painted ${commitCount} commits` : null
-    };
-
-    const level = getIntensityLevel(commitCount);
-    cell.className = `contrib-cell level-${level} ${appState.activeIntensityFilter !== 'all' ? (appState.activeIntensityFilter === `level-${level}` ? 'filtered-match' : 'filtered-dim') : ''}`;
-    cell.setAttribute('data-count', String(commitCount));
-    cell.setAttribute('data-level', String(level));
-
-    playCommitSound();
-  }
-
-  function handleCellHover(e) {
-    const cell = e.currentTarget;
-    const count = parseInt(cell.getAttribute('data-count'), 10) || 0;
-    const formattedDate = cell.getAttribute('data-formatted-date') || '';
-    const repo = cell.getAttribute('data-repo');
-
-    let text = `<strong>${count > 0 ? count + ' contributions' : 'No contributions'}</strong> on ${formattedDate}`;
-    if (repo && count > 0) {
-      text += `<br><span style="color: #58a6ff; font-family: monospace; font-size: 0.7rem;">📦 ${repo}</span>`;
-    }
-
-    tooltipEl.innerHTML = text;
-    tooltipEl.style.display = 'block';
-
-    const rect = cell.getBoundingClientRect();
-    const tooltipX = rect.left + rect.width / 2;
-    const tooltipY = rect.top - 6;
-
-    tooltipEl.style.left = `${tooltipX}px`;
-    tooltipEl.style.top = `${tooltipY}px`;
-  }
-
-  function handleCellLeave() {
-    tooltipEl.style.display = 'none';
-  }
-
-  function handleCellClick(e) {
-    if (appState.paintMode) {
-      // Handled by paintCell on mousedown
       return;
     }
-    const cell = e.currentTarget;
-    const dateKey = cell.getAttribute('data-date');
-    if (!dateKey) return;
 
-    modalActiveCellDate = dateKey;
-    openContributionDetailModal(dateKey);
+    // Demo Mode Activity Feed
+    const sortedDates = Object.keys(yearData || {})
+      .filter((dateStr) => {
+        const e = yearData[dateStr];
+        if (!e || (e.total || 0) <= 0) return false;
+        if (appState.activeRepoFilter && !e.repositories.includes(appState.activeRepoFilter)) return false;
+        return true;
+      })
+      .sort((a, b) => b.localeCompare(a));
+
+    const displayDates = sortedDates.slice(0, 15);
+    setText(DOM.activityStreamCount, `${sortedDates.length} recorded events`);
+
+    if (displayDates.length === 0) {
+      DOM.recentActivityFeed.innerHTML = `
+        <div class="card-panel text-center" style="padding: 24px;">
+          <span style="font-size: 2rem;">📭</span>
+          <h4 style="margin-top: 8px;">No Activity Found</h4>
+          <p class="panel-subtext">No contributions match the selected filter or repository.</p>
+        </div>
+      `;
+      return;
+    }
+
+    displayDates.forEach((dateStr) => {
+      const entry = yearData[dateStr];
+      const feedItem = document.createElement('div');
+      feedItem.className = 'feed-item';
+      feedItem.setAttribute('tabindex', '0');
+      feedItem.setAttribute('role', 'article');
+      feedItem.setAttribute('aria-label', `Activity on ${formatFriendlyDate(dateStr)}: ${entry.total} contributions`);
+      feedItem.style.cursor = 'pointer';
+
+      const typeBadges = [];
+      if (entry.commits > 0) typeBadges.push(`💻 ${entry.commits} commits`);
+      if (entry.pullRequests > 0) typeBadges.push(`🔀 ${entry.pullRequests} PRs`);
+      if (entry.issues > 0) typeBadges.push(`⚠️ ${entry.issues} issues`);
+      if (entry.codeReviews > 0) typeBadges.push(`👁️ ${entry.codeReviews} reviews`);
+
+      feedItem.innerHTML = `
+        <div class="feed-marker">🟩</div>
+        <div class="feed-content">
+          <div class="feed-header-line">
+            <span class="feed-action">${typeBadges.join(' • ') || 'Activity'}</span>
+            <span class="feed-date">${formatFriendlyDate(dateStr)}</span>
+          </div>
+          <div class="feed-repo">${escapeHtml(entry.primaryRepo || 'General')}</div>
+          ${entry.note ? `<div class="feed-msg">"${escapeHtml(entry.note)}"</div>` : ''}
+        </div>
+      `;
+
+      feedItem.addEventListener('click', () => {
+        openDayDetailsModal(dateStr);
+      });
+
+      feedItem.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openDayDetailsModal(dateStr);
+        }
+      });
+
+      DOM.recentActivityFeed.appendChild(feedItem);
+    });
   }
 
-  function openContributionDetailModal(dateKey) {
-    const year = appState.selectedYear;
-    const yearData = appState.contributionsByYear[year] || {};
-    const item = yearData[dateKey] || { count: 0, repo: null };
-    const dateObj = new Date(dateKey + 'T00:00:00');
+  function renderAchievements(stats) {
+    if (!DOM.achievementsGrid) return;
+    DOM.achievementsGrid.innerHTML = '';
 
-    const formattedDate = dateObj.toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+    let unlockedCount = 0;
+
+    ACHIEVEMENTS_DEFINITIONS.forEach((achieve) => {
+      const isUnlocked = achieve.check(stats);
+      if (isUnlocked) unlockedCount++;
+
+      const progressPct = achieve.progress(stats);
+      const currentText = achieve.current(stats);
+
+      const card = document.createElement('div');
+      card.className = `achievement-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('role', 'button');
+      card.setAttribute('aria-label', `${achieve.name}: ${isUnlocked ? 'Unlocked' : 'In Progress'}`);
+
+      card.innerHTML = `
+        <div class="achieve-icon">${achieve.icon}</div>
+        <div class="achieve-info">
+          <div class="achieve-title">${escapeHtml(achieve.name)}</div>
+          <div class="achieve-desc">${escapeHtml(achieve.desc)}</div>
+          <div class="achieve-status-text">${isUnlocked ? '✓ Unlocked' : currentText}</div>
+          <div class="progress-track" style="height: 6px; margin: 6px 0 0 0;">
+            <div class="progress-indicator" style="width: ${progressPct}%;"></div>
+          </div>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        openAchievementDetailModal(achieve, isUnlocked, progressPct, currentText);
+      });
+
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openAchievementDetailModal(achieve, isUnlocked, progressPct, currentText);
+        }
+      });
+
+      DOM.achievementsGrid.appendChild(card);
     });
 
-    const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-    const count = item.count || 0;
-    const level = getIntensityLevel(count);
+    setText(DOM.achievementsTallyBadge, `${unlockedCount} / ${ACHIEVEMENTS_DEFINITIONS.length} Unlocked`);
+  }
 
-    const levelDescriptions = ['No Activity', 'Low Activity', 'Medium Activity', 'High Activity', 'Very High Activity'];
+  function renderRepoFilterBadge() {
+    if (!DOM.repoFilterIndicator || !DOM.repoFilterActiveText || !DOM.btnClearRepoFilter) return;
 
-    // Update modal elements
-    document.getElementById('modal-date').textContent = formattedDate;
-    document.getElementById('modal-commit-count').textContent = count === 1 ? '1 contribution' : `${count} contributions`;
-    document.getElementById('modal-level').textContent = levelDescriptions[level];
-    document.getElementById('modal-repo').textContent = item.repo || (count > 0 ? 'Green-Square-Lab' : 'No repository active');
-    document.getElementById('modal-day-name').textContent = dayName;
+    if (appState.activeRepoFilter) {
+      DOM.repoFilterActiveText.textContent = `Filtered: ${appState.activeRepoFilter}`;
+      DOM.btnClearRepoFilter.style.display = 'inline-block';
+    } else {
+      DOM.repoFilterActiveText.textContent = 'All Projects';
+      DOM.btnClearRepoFilter.style.display = 'none';
+    }
+  }
 
-    // Update preview square color
-    const previewSquare = document.getElementById('modal-preview-square');
-    previewSquare.className = `preview-square contrib-cell level-${level}`;
-
-    showModal('contrib-modal');
+  function toggleRepoFilter(repoName) {
+    if (appState.activeRepoFilter === repoName) {
+      appState.activeRepoFilter = null;
+      showToast('Cleared repository filter', 'info');
+    } else {
+      appState.activeRepoFilter = repoName;
+      showToast(`Filtered by ${repoName}`, 'info');
+    }
+    renderAll();
   }
 
   // ==========================================================================
-  // 9. MODALS SYSTEM (ACCESSIBLE, NO BROWSER ALERTS)
+  // 8. MODALS INFRASTRUCTURE & HANDLERS
   // ==========================================================================
 
-  function showModal(modalId) {
+  let lastActiveElement = null;
+
+  function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
 
-    modal.classList.add('show');
+    lastActiveElement = document.activeElement;
+    appState.activeModal = modalId;
+
+    modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
 
-    // Focus the close button or first interactive element
-    const closeBtn = modal.querySelector('.modal-close-btn');
-    if (closeBtn) closeBtn.focus();
-
-    document.body.style.overflow = 'hidden';
+    const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (focusable.length > 0) {
+      focusable[0].focus();
+    }
   }
 
   function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
 
-    modal.classList.remove('show');
+    modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    appState.activeModal = null;
+    document.body.classList.remove('modal-open');
+
+    if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+      lastActiveElement.focus();
+    }
   }
 
-  function initModals() {
-    // Backdrop click to close & Escape key
-    document.querySelectorAll('.modal-backdrop').forEach(modal => {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          closeModal(modal.id);
-        }
-      });
+  function closeAllModals() {
+    const activeModals = document.querySelectorAll('.modal-backdrop.active');
+    activeModals.forEach((m) => {
+      m.classList.remove('active');
+      m.setAttribute('aria-hidden', 'true');
     });
+    appState.activeModal = null;
+    document.body.classList.remove('modal-open');
+  }
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-backdrop.show').forEach(modal => {
-          closeModal(modal.id);
-        });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (appState.activeModal) {
+        closeModal(appState.activeModal);
       }
-    });
-
-    // Modal Close Buttons
-    document.getElementById('modal-contrib-close')?.addEventListener('click', () => closeModal('contrib-modal'));
-    document.getElementById('modal-contrib-done')?.addEventListener('click', () => closeModal('contrib-modal'));
-
-    document.getElementById('modal-reset-close')?.addEventListener('click', () => closeModal('reset-modal'));
-    document.getElementById('modal-reset-cancel')?.addEventListener('click', () => closeModal('reset-modal'));
-
-    document.getElementById('modal-achieve-close')?.addEventListener('click', () => closeModal('achievement-modal'));
-    document.getElementById('modal-achieve-done')?.addEventListener('click', () => closeModal('achievement-modal'));
-
-    // Export Modal Close & Copy
-    document.getElementById('modal-export-close')?.addEventListener('click', () => closeModal('export-modal'));
-    document.getElementById('modal-export-close-btn')?.addEventListener('click', () => closeModal('export-modal'));
-    document.getElementById('btn-copy-export')?.addEventListener('click', () => {
-      const area = document.getElementById('export-textarea');
-      if (area) {
-        area.select();
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(area.value).then(() => {
-            showToast('Summary copied to clipboard! 📋', 'success');
-          }).catch(() => {
-            document.execCommand('copy');
-            showToast('Summary copied to clipboard! 📋', 'success');
-          });
-        } else {
-          document.execCommand('copy');
-          showToast('Summary copied to clipboard! 📋', 'success');
-        }
-      }
-    });
-
-    // Quick Action in Contribution Modal: +1 Commit
-    document.getElementById('btn-modal-add-one')?.addEventListener('click', () => {
-      if (!modalActiveCellDate) return;
-      addCommitsToDate(modalActiveCellDate, 1, 'Green-Square-Lab', 'Quick +1 commit');
-      openContributionDetailModal(modalActiveCellDate);
-      showToast('Added +1 commit to this day! 🟩');
-    });
-
-    // Reset Confirm Action
-    document.getElementById('modal-reset-confirm')?.addEventListener('click', () => {
-      resetDemoData();
-      closeModal('reset-modal');
-    });
-  }
-
-  // ==========================================================================
-  // 10. STATISTICS & UI RENDERING
-  // ==========================================================================
-
-  function renderAllUI() {
-    const year = appState.selectedYear;
-    const stats = calculateStatistics(year);
-
-    // 1. Hero 4 Dynamic Stats Cards
-    const streakDays = stats.currentStreak;
-    document.getElementById('stat-current-streak').textContent = `${streakDays} ${streakDays === 1 ? 'day' : 'days'}`;
-    document.getElementById('stat-longest-streak').textContent = `${stats.longestStreak} days`;
-    document.getElementById('stat-total-contributions').textContent = stats.totalContributions.toLocaleString();
-    document.getElementById('stat-active-repos').textContent = stats.activeReposCount;
-    document.getElementById('stat-year-indicator').textContent = `In year ${year}`;
-
-    // Subtext for current streak
-    const noteEl = document.getElementById('stat-current-streak-note');
-    if (streakDays === 0) noteEl.textContent = 'Ready to begin';
-    else if (streakDays <= 3) noteEl.textContent = 'Building momentum';
-    else if (streakDays <= 7) noteEl.textContent = 'Solid daily habit';
-    else noteEl.textContent = 'Unstoppable streak 🔥';
-
-    // 2. Activity Summary Cards
-    document.getElementById('sum-total-contributions').textContent = stats.totalContributions.toLocaleString();
-    document.getElementById('sum-active-days').textContent = stats.activeDays;
-    document.getElementById('sum-avg-contributions').textContent = stats.avgContributions;
-    document.getElementById('sum-best-day-count').textContent = stats.bestDayCount > 0 ? `${stats.bestDayCount} commits` : '0';
-    if (stats.bestDayDate) {
-      const bestDateObj = new Date(stats.bestDayDate + 'T00:00:00');
-      document.getElementById('sum-best-day-date').textContent = bestDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    } else {
-      document.getElementById('sum-best-day-date').textContent = 'None yet';
-    }
-    document.getElementById('sum-longest-streak').textContent = `${stats.longestStreak} days`;
-
-    // 3. Streak Mode Card
-    document.getElementById('streak-big-display').textContent = streakDays;
-    document.getElementById('streak-mode-current').textContent = `${streakDays} days`;
-    document.getElementById('streak-mode-longest').textContent = `${stats.longestStreak} days`;
-
-    // Streak Motivational Message
-    const streakMsgEl = document.getElementById('streak-motivational-msg');
-    if (streakDays === 0) {
-      streakMsgEl.textContent = '"Bro, today is a good day to start."';
-    } else if (streakDays >= 1 && streakDays <= 3) {
-      streakMsgEl.textContent = '"Nice start. Keep going!"';
-    } else if (streakDays >= 4 && streakDays <= 7) {
-      streakMsgEl.textContent = '"You\'re building momentum. 🔥"';
-    } else if (streakDays >= 8 && streakDays <= 14) {
-      streakMsgEl.textContent = '"Serious green-square energy."';
-    } else {
-      streakMsgEl.textContent = '"Absolute commit machine. 🟩🔥"';
-    }
-
-    renderStreakTrail(year);
-
-    // 4. Weekly Goal & Consistency Score
-    renderWeeklyGoal(year, stats);
-
-    // 5. Weekly Bar Chart
-    renderWeeklyChart(year);
-
-    // 6. Repositories Activity
-    renderRepositories(stats);
-
-    // 7. Recent Activity Timeline
-    renderRecentActivity();
-
-    // 8. Achievements
-    renderAchievements(stats);
-
-    // 9. Update Heatmap
-    renderHeatmap();
-  }
-
-  /**
-   * Render recent 14-day streak trail
-   */
-  function renderStreakTrail(year) {
-    const container = document.getElementById('streak-trail-container');
-    if (!container) return;
-
-    const yearData = appState.contributionsByYear[year] || {};
-    const today = new Date(2026, 9, 7); // Oct 7, 2026
-    let html = '';
-
-    for (let i = 13; i >= 0; i--) {
-      const dayDate = new Date(today);
-      dayDate.setDate(dayDate.getDate() - i);
-      const key = formatDateKey(dayDate);
-      const count = (yearData[key] && yearData[key].count) || 0;
-      const isActive = count > 0;
-      const dayLabel = DAY_LABELS[dayDate.getDay()];
-      const dayNum = dayDate.getDate();
-
-      html += `
-        <div class="trail-day-bubble ${isActive ? 'active' : 'inactive'}" title="${key}: ${count} commits">
-          <span class="trail-day-name">${dayLabel}</span>
-          <span class="trail-day-num">${isActive ? '✓' : dayNum}</span>
-        </div>
-      `;
-    }
-
-    container.innerHTML = html;
-  }
-
-  /**
-   * Render weekly commit goal progress and consistency score
-   */
-  function renderWeeklyGoal(year, stats) {
-    const yearData = appState.contributionsByYear[year] || {};
-    const goal = appState.weeklyGoal || 20;
-
-    // Calculate current week commits (from current week's Monday through Sunday)
-    const today = new Date(2026, 9, 7); // Oct 7, 2026 is Wednesday
-    const dayOfWeek = today.getDay();
-    const distanceToMonday = (dayOfWeek + 6) % 7;
-    const monday = new Date(today);
-    monday.setDate(monday.getDate() - distanceToMonday);
-
-    let weeklyCommits = 0;
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(monday);
-      d.setDate(d.getDate() + i);
-      const key = formatDateKey(d);
-      if (yearData[key]) {
-        weeklyCommits += yearData[key].count || 0;
+      if (DOM.mainNavList && DOM.mainNavList.classList.contains('mobile-open')) {
+        toggleMobileMenu(false);
       }
     }
+  });
 
-    const percent = Math.min(100, Math.round((weeklyCommits / goal) * 100));
-
-    document.getElementById('goal-input').value = goal;
-    document.getElementById('goal-target-display').textContent = `${goal} commits`;
-    document.getElementById('goal-current-display').textContent = `${weeklyCommits} commits`;
-    document.getElementById('goal-percent-display').textContent = `${percent}%`;
-
-    const progressFill = document.getElementById('goal-progress-fill');
-    progressFill.style.width = `${percent}%`;
-
-    const statusText = document.getElementById('goal-status-text');
-    const statusIcon = document.getElementById('goal-status-icon');
-
-    if (weeklyCommits >= goal) {
-      statusIcon.textContent = '🎉';
-      statusText.textContent = 'Goal completed! 🎉';
-      statusText.style.color = 'var(--contrib-4)';
-    } else {
-      const diff = goal - weeklyCommits;
-      statusIcon.textContent = '⏳';
-      statusText.textContent = `${diff} ${diff === 1 ? 'commit' : 'commits'} to go`;
-      statusText.style.color = 'var(--text-secondary)';
-    }
-
-    // Consistency Score
-    const score = calculateConsistencyScore(stats, percent);
-    document.getElementById('consistency-score-num').textContent = score;
-
-    const consistencyStatus = document.getElementById('consistency-status-text');
-    if (score >= 80) {
-      consistencyStatus.textContent = '"Your consistency is looking elite. 🔥"';
-    } else if (score >= 60) {
-      consistencyStatus.textContent = '"Your consistency is looking good. 🔥"';
-    } else if (score >= 40) {
-      consistencyStatus.textContent = '"Steady pace. Keep pushing for more green! 🟩"';
-    } else {
-      consistencyStatus.textContent = '"Consistency takes practice. Start today! 🌱"';
-    }
-  }
-
-  /**
-   * Render pure HTML/CSS/JS 7-day Bar Chart
-   */
-  function renderWeeklyChart(year) {
-    const container = document.getElementById('weekly-bar-chart');
-    if (!container) return;
-
-    const yearData = appState.contributionsByYear[year] || {};
-    const today = new Date(2026, 9, 7); // Oct 7, 2026
-    const daysData = [];
-
-    let maxVal = 1;
-    let totalCommits = 0;
-
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const key = formatDateKey(d);
-      const count = (yearData[key] && yearData[key].count) || 0;
-      if (count > maxVal) maxVal = count;
-      totalCommits += count;
-
-      daysData.push({
-        dateKey: key,
-        dayName: DAY_LABELS[d.getDay()],
-        count: count
-      });
-    }
-
-    let html = '';
-    daysData.forEach(item => {
-      const heightPercent = item.count > 0 ? Math.max(12, Math.round((item.count / maxVal) * 100)) : 4;
-      html += `
-        <div class="chart-bar-column" title="${item.dateKey}: ${item.count} commits">
-          <div class="bar-count-label">${item.count}</div>
-          <div class="bar-track">
-            <div class="bar-fill" style="height: ${heightPercent}%;"></div>
-          </div>
-          <div class="bar-day-name">${item.dayName}</div>
-        </div>
-      `;
-    });
-
-    container.innerHTML = html;
-
-    document.getElementById('chart-total-label').innerHTML = `Total in last 7 days: <strong>${totalCommits} commits</strong>`;
-    document.getElementById('chart-peak-label').innerHTML = `Peak: <strong>${maxVal} commits</strong>`;
-  }
-
-  /**
-   * Render repository activity cards
-   */
-  function renderRepositories(stats) {
-    const container = document.getElementById('repo-list-container');
-    if (!container) return;
-
-    const repoTotals = stats.repoTotals || {};
-    let html = '';
-
-    DEMO_REPOSITORIES.forEach(repoName => {
-      const count = repoTotals[repoName] || 0;
-      let levelTag = 'low';
-      let levelLabel = 'Low Activity';
-
-      if (count >= 150) {
-        levelTag = 'high';
-        levelLabel = 'High Activity';
-      } else if (count >= 50) {
-        levelTag = 'medium';
-        levelLabel = 'Medium Activity';
+  document.querySelectorAll('.modal-backdrop').forEach((backdrop) => {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) {
+        closeModal(backdrop.id);
       }
-
-      const isSelected = appState.selectedRepoFilter === repoName;
-
-      html += `
-        <div class="repo-item ${isSelected ? 'active' : ''}" data-repo="${repoName}">
-          <div class="repo-meta-left">
-            <span class="repo-icon">📦</span>
-            <div>
-              <div class="repo-name">${repoName}</div>
-              <div class="repo-commits-pill">${count.toLocaleString()} commits</div>
-            </div>
-          </div>
-          <div class="repo-meta-right">
-            <span class="repo-level-tag ${levelTag}">${levelLabel}</span>
-          </div>
-        </div>
-      `;
     });
+  });
 
-    container.innerHTML = html;
-
-    // Filter indicator
-    const indicatorName = document.getElementById('repo-filter-name');
-    const clearBtn = document.getElementById('btn-clear-repo-filter');
-
-    if (appState.selectedRepoFilter) {
-      indicatorName.textContent = `Filtered: ${appState.selectedRepoFilter}`;
-      clearBtn.style.display = 'inline-block';
-    } else {
-      indicatorName.textContent = 'All Repos';
-      clearBtn.style.display = 'none';
-    }
-
-    // Attach click events to repos for filtering
-    container.querySelectorAll('.repo-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const targetRepo = item.getAttribute('data-repo');
-        if (appState.selectedRepoFilter === targetRepo) {
-          appState.selectedRepoFilter = null;
-          showToast(`Cleared filter for ${targetRepo}`, 'info');
-        } else {
-          appState.selectedRepoFilter = targetRepo;
-          showToast(`Filtered heatmap by repository: ${targetRepo}`, 'info');
-        }
-        saveState();
-        renderHeatmap();
-        renderRepositories(stats);
-      });
-    });
-  }
-
-  /**
-   * Render Recent Activity stream
-   */
-  function renderRecentActivity() {
-    const container = document.getElementById('recent-timeline');
-    if (!container) return;
-
-    const activities = appState.recentActivity || [];
-
-    if (activities.length === 0) {
-      container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 12px;">No recent contribution events recorded.</div>';
-      return;
-    }
-
-    let html = '';
-    activities.slice(0, 8).forEach(act => {
-      let relativeTime = 'Today';
-      if (act.diffDays === 1) relativeTime = 'Yesterday';
-      else if (act.diffDays > 1) relativeTime = `${act.diffDays} days ago`;
-      else if (act.diffDays < 0) relativeTime = 'Upcoming';
-
-      html += `
-        <div class="timeline-item">
-          <div class="timeline-marker">🟩</div>
-          <div class="timeline-content">
-            <div class="timeline-header-line">
-              <span class="timeline-action">Added ${act.count} contributions</span>
-              <span class="timeline-time">${relativeTime}</span>
-            </div>
-            <div class="timeline-repo">📦 ${act.repo}</div>
-            ${act.msg ? `<div class="timeline-msg">"${act.msg}"</div>` : ''}
-          </div>
-        </div>
-      `;
-    });
-
-    container.innerHTML = html;
-  }
-
-  /**
-   * Render Achievements Grid
-   */
-  function renderAchievements(stats) {
-    const container = document.getElementById('achievements-grid');
-    if (!container) return;
-
-    let unlockedCount = 0;
-    let html = '';
-
-    ACHIEVEMENTS_DEF.forEach(achieve => {
-      const isUnlocked = achieve.check(stats);
-      if (isUnlocked) unlockedCount++;
-
-      html += `
-        <div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}" data-achieve-id="${achieve.id}">
-          <div class="achieve-icon">${achieve.icon}</div>
-          <div class="achieve-info">
-            <div class="achieve-title">${achieve.name}</div>
-            <div class="achieve-desc">${achieve.desc}</div>
-            <span class="achieve-state-pill">${isUnlocked ? '✓ Unlocked' : '🔒 Locked'}</span>
-          </div>
-        </div>
-      `;
-    });
-
-    container.innerHTML = html;
-
-    document.getElementById('achievements-unlocked-badge').textContent = `${unlockedCount} / ${ACHIEVEMENTS_DEF.length} Unlocked`;
-
-    // Click to open Achievement detail modal
-    container.querySelectorAll('.achievement-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const id = card.getAttribute('data-achieve-id');
-        const achieve = ACHIEVEMENTS_DEF.find(a => a.id === id);
-        if (!achieve) return;
-
-        const isUnlocked = achieve.check(stats);
-        document.getElementById('modal-achieve-icon').textContent = achieve.icon;
-        document.getElementById('modal-achieve-giant-icon').textContent = achieve.icon;
-        document.getElementById('modal-achieve-name').textContent = achieve.name;
-        document.getElementById('modal-achieve-desc').textContent = achieve.desc;
-        document.getElementById('modal-achieve-status').textContent = isUnlocked ? 'Unlocked 🎉' : 'In Progress ⏳';
-        document.getElementById('modal-achieve-progress-text').textContent = achieve.current(stats);
-
-        const progressPercent = achieve.progress(stats);
-        document.getElementById('modal-achieve-progress-fill').style.width = `${progressPercent}%`;
-
-        showModal('achievement-modal');
-      });
-    });
-  }
-
-  // ==========================================================================
-  // 11. USER ACTIONS (ADD CONTRIBUTION, GENERATE, RESET)
-  // ==========================================================================
-
-  function addCommitsToDate(dateKey, commitsToAdd, repoName, noteMessage) {
-    const year = parseInt(dateKey.substring(0, 4), 10);
-    if (!appState.contributionsByYear[year]) {
-      const generated = generateDemoDataForYear(year);
-      appState.contributionsByYear[year] = generated.data;
-    }
-
-    const currentEntry = appState.contributionsByYear[year][dateKey] || { count: 0, repo: repoName };
-    const newCount = (currentEntry.count || 0) + commitsToAdd;
-
-    appState.contributionsByYear[year][dateKey] = {
-      count: newCount,
-      repo: repoName || currentEntry.repo || 'Green-Square-Lab',
-      note: noteMessage || currentEntry.note
+  async function openDayDetailsModal(dateStr) {
+    appState.selectedDate = dateStr;
+    const year = parseInt(dateStr.substring(0, 4), 10);
+    const yearData = await appState.currentProvider.getYearData(year);
+    const entry = (yearData || {})[dateStr] || {
+      date: dateStr,
+      commits: 0,
+      pullRequests: 0,
+      issues: 0,
+      codeReviews: 0,
+      total: 0,
+      repositories: [DEMO_REPOSITORIES[0]],
+      primaryRepo: DEMO_REPOSITORIES[0],
+      note: ''
     };
 
-    // Calculate diff from today for timeline
-    const today = new Date(2026, 9, 7);
-    const targetDate = new Date(dateKey + 'T00:00:00');
-    const diffDays = Math.floor((today - targetDate) / (1000 * 60 * 60 * 24));
+    setText(document.getElementById('day-modal-date'), formatFriendlyDate(dateStr));
+    setText(document.getElementById('day-modal-total-count'), `${entry.total || 0} Contributions`);
+    setText(document.getElementById('day-modal-commits'), entry.commits || 0);
+    setText(document.getElementById('day-modal-prs'), entry.pullRequests || 0);
+    setText(document.getElementById('day-modal-issues'), entry.issues || 0);
+    setText(document.getElementById('day-modal-reviews'), entry.codeReviews || 0);
 
-    // Prepend to recent activities
-    appState.recentActivity.unshift({
-      date: dateKey,
-      count: commitsToAdd,
-      repo: repoName,
-      diffDays: diffDays,
-      msg: noteMessage || `Commit pushed to ${repoName}`
-    });
-
-    saveState();
-    renderAllUI();
-  }
-
-  function handleAddContributionForm(e) {
-    e.preventDefault();
-
-    const dateInput = document.getElementById('contrib-date');
-    const countInput = document.getElementById('contrib-count');
-    const repoInput = document.getElementById('contrib-repo');
-    const messageInput = document.getElementById('contrib-message');
-
-    const dateVal = dateInput.value;
-    const countVal = parseInt(countInput.value, 10);
-    const repoVal = repoInput.value;
-    const msgVal = messageInput.value.trim();
-
-    // Validation
-    if (!dateVal) {
-      showToast('Please select a valid date.', 'error');
-      dateInput.focus();
-      return;
-    }
-
-    if (isNaN(countVal) || countVal < 1 || countVal > 50) {
-      showToast('Commits count must be between 1 and 50.', 'error');
-      countInput.focus();
-      return;
-    }
-
-    if (!repoVal) {
-      showToast('Please select a repository.', 'error');
-      repoInput.focus();
-      return;
-    }
-
-    addCommitsToDate(dateVal, countVal, repoVal, msgVal);
-
-    showToast(`Added ${countVal} contributions to ${dateVal}! 🟩`, 'success');
-
-    // Reset message
-    messageInput.value = '';
-  }
-
-  function generateNewDemoActivity() {
-    const year = appState.selectedYear;
-    // Generate fresh randomized seed
-    const newSeed = Math.floor(Math.random() * 900000) + 100000;
-    const generated = generateDemoDataForYear(year, newSeed);
-
-    appState.contributionsByYear[year] = generated.data;
-    appState.recentActivity = generated.recentActivityList;
-
-    saveState();
-    renderAllUI();
-
-    showToast('New activity generated! 🟩', 'success');
-  }
-
-  function resetDemoData() {
-    const year = appState.selectedYear;
-    const initialGenerated = generateDemoDataForYear(year, year * 997 + 104729);
-
-    appState.contributionsByYear[year] = initialGenerated.data;
-    appState.recentActivity = initialGenerated.recentActivityList;
-    appState.selectedRepoFilter = null;
-    appState.activeIntensityFilter = 'all';
-
-    // Reset filter UI dropdown and chips
-    document.getElementById('filter-select').value = 'all';
-    document.querySelectorAll('.chip').forEach(c => {
-      c.classList.toggle('active', c.getAttribute('data-filter') === 'all');
-    });
-
-    saveState();
-    renderAllUI();
-
-    showToast('Demo data restored! 🔄', 'info');
-  }
-
-  // ==========================================================================
-  // 12. THEME, PALETTE, SOUND & PAINTER LOGIC
-  // ==========================================================================
-
-  function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-    document.documentElement.setAttribute('data-theme', newTheme);
-    appState.theme = newTheme;
-    saveState();
-    updateThemeButtonUI(newTheme);
-
-    showToast(`Theme switched to ${newTheme.toUpperCase()}`, 'info');
-  }
-
-  function updateThemeButtonUI(theme) {
-    const icon = document.querySelector('.theme-icon');
-    const label = document.querySelector('.theme-label');
-    if (!icon || !label) return;
-
-    if (theme === 'light') {
-      icon.textContent = '☀️';
-      label.textContent = 'Light';
-    } else {
-      icon.textContent = '🌙';
-      label.textContent = 'Dark';
-    }
-  }
-
-  function setPalette(paletteName) {
-    if (!paletteName) return;
-    document.documentElement.setAttribute('data-palette', paletteName);
-    appState.palette = paletteName;
-    saveState();
-    renderHeatmap();
-    showToast(`Palette changed to ${paletteName.toUpperCase()} 🎨`, 'info');
-  }
-
-  function toggleSound() {
-    appState.soundEnabled = !appState.soundEnabled;
-    saveState();
-    updateSoundButtonUI(appState.soundEnabled);
-    if (appState.soundEnabled) {
-      playCommitSound();
-      showToast('Sound effects ON 🔊', 'info');
-    } else {
-      showToast('Sound effects muted 🔇', 'info');
-    }
-  }
-
-  function updateSoundButtonUI(enabled) {
-    const icon = document.querySelector('.sound-icon');
-    const label = document.querySelector('.sound-label');
-    if (!icon || !label) return;
-    icon.textContent = enabled ? '🔊' : '🔇';
-    label.textContent = enabled ? 'Sound' : 'Mute';
-  }
-
-  function togglePaintMode() {
-    appState.paintMode = !appState.paintMode;
-    const btn = document.getElementById('btn-toggle-paint');
-    const label = document.getElementById('paint-label');
-    const brushSelector = document.getElementById('brush-selector');
-
-    if (appState.paintMode) {
-      document.body.classList.add('paint-mode-active');
-      btn.classList.add('btn-primary');
-      btn.classList.remove('btn-secondary');
-      label.textContent = 'Square Painter: ON';
-      brushSelector.style.display = 'flex';
-      showToast('Painter Mode active: Click & drag over squares to draw! 🖌️', 'success');
-    } else {
-      document.body.classList.remove('paint-mode-active');
-      btn.classList.remove('btn-primary');
-      btn.classList.add('btn-secondary');
-      label.textContent = 'Square Painter: OFF';
-      brushSelector.style.display = 'none';
-      saveState();
-      renderAllUI();
-      showToast('Painter Mode OFF', 'info');
-    }
-  }
-
-  function setBrush(level) {
-    appState.paintBrush = level;
-    document.querySelectorAll('.brush-btn').forEach(btn => {
-      btn.classList.toggle('active', parseInt(btn.getAttribute('data-brush'), 10) === level);
-    });
-    playCommitSound();
-  }
-
-  function applyPresetArt(pattern) {
-    if (!pattern) return;
-    const year = appState.selectedYear;
-    if (!appState.contributionsByYear[year]) {
-      const generated = generateDemoDataForYear(year);
-      appState.contributionsByYear[year] = generated.data;
-    }
-
-    const yearData = appState.contributionsByYear[year];
-    const jan1 = new Date(year, 0, 1);
-    const startOffset = jan1.getDay();
-    const calendarStart = new Date(jan1);
-    calendarStart.setDate(calendarStart.getDate() - startOffset);
-
-    // Build grid mapping: (week 0..52, day 0..6) -> dateKey
-    const gridMap = {};
-    const walker = new Date(calendarStart);
-
-    for (let w = 0; w < 53; w++) {
-      for (let d = 0; d < 7; d++) {
-        const key = formatDateKey(walker);
-        if (walker.getFullYear() === year) {
-          gridMap[`${w},${d}`] = key;
-        }
-        walker.setDate(walker.getDate() + 1);
+    const reposWrap = document.getElementById('day-modal-repos');
+    if (reposWrap) {
+      reposWrap.innerHTML = '';
+      const repos = entry.repositories || [];
+      if (repos.length > 0) {
+        repos.forEach((r) => {
+          const tag = document.createElement('span');
+          tag.className = 'repo-tag';
+          tag.textContent = r;
+          reposWrap.appendChild(tag);
+        });
+      } else {
+        const tag = document.createElement('span');
+        tag.className = 'repo-tag';
+        tag.textContent = 'None';
+        reposWrap.appendChild(tag);
       }
     }
 
-    if (pattern === 'solid') {
-      Object.values(gridMap).forEach(key => {
-        yearData[key] = { count: 12, repo: 'Green-Square-Lab', note: 'Max Wall pattern' };
-      });
-    } else if (pattern === 'checker') {
-      for (let w = 0; w < 53; w++) {
-        for (let d = 0; d < 7; d++) {
-          const key = gridMap[`${w},${d}`];
-          if (!key) continue;
-          if ((w + d) % 2 === 0) {
-            yearData[key] = { count: 8, repo: 'Commit-Tracker', note: 'Checkerboard pattern' };
-          } else {
-            yearData[key] = { count: 0, repo: null };
-          }
-        }
+    const noteWrap = document.getElementById('day-modal-note-wrap');
+    const noteVal = document.getElementById('day-modal-note');
+    if (noteWrap && noteVal) {
+      if (entry.note) {
+        noteWrap.style.display = 'block';
+        noteVal.textContent = entry.note;
+      } else {
+        noteWrap.style.display = 'none';
+        noteVal.textContent = '';
       }
-    } else if (pattern === 'wave') {
-      for (let w = 0; w < 53; w++) {
-        const waveDay = Math.round(3 + 2.5 * Math.sin(w / 3));
-        for (let d = 0; d < 7; d++) {
-          const key = gridMap[`${w},${d}`];
-          if (!key) continue;
-          if (d === waveDay || d === waveDay - 1) {
-            yearData[key] = { count: 10, repo: 'Code-Streak', note: 'Wave pattern' };
-          } else {
-            yearData[key] = { count: 0, repo: null };
-          }
-        }
-      }
-    } else if (pattern === 'heart') {
-      const heartPoints = [
-        [24, 1], [25, 1], [27, 1], [28, 1],
-        [23, 2], [24, 2], [25, 2], [26, 2], [27, 2], [28, 2], [29, 2],
-        [23, 3], [24, 3], [25, 3], [26, 3], [27, 3], [28, 3], [29, 3],
-        [24, 4], [25, 4], [26, 4], [27, 4], [28, 4],
-        [25, 5], [26, 5], [27, 5],
-        [26, 6]
-      ];
-      Object.values(gridMap).forEach(key => {
-        yearData[key] = { count: 0, repo: null };
-      });
-      heartPoints.forEach(([w, d]) => {
-        const key = gridMap[`${w},${d}`];
-        if (key) {
-          yearData[key] = { count: 12, repo: 'Dev-Journal', note: 'Heart Pixel Art' };
-        }
-      });
-    } else if (pattern === 'git') {
-      Object.values(gridMap).forEach(key => {
-        yearData[key] = { count: 0, repo: null };
-      });
-      const gPoints = [
-        [18, 1], [19, 1], [20, 1], [21, 1],
-        [18, 2],
-        [18, 3], [20, 3], [21, 3],
-        [18, 4], [21, 4],
-        [18, 5], [19, 5], [20, 5], [21, 5]
-      ];
-      const iPoints = [
-        [23, 1], [24, 1], [25, 1],
-        [24, 2],
-        [24, 3],
-        [24, 4],
-        [23, 5], [24, 5], [25, 5]
-      ];
-      const tPoints = [
-        [27, 1], [28, 1], [29, 1], [30, 1],
-        [28, 2], [29, 2],
-        [28, 3], [29, 3],
-        [28, 4], [29, 4],
-        [28, 5], [29, 5]
-      ];
-      [...gPoints, ...iPoints, ...tPoints].forEach(([w, d]) => {
-        const key = gridMap[`${w},${d}`];
-        if (key) {
-          yearData[key] = { count: 12, repo: 'Green-Square-Lab', note: 'GIT Text Art' };
-        }
-      });
     }
 
-    playSuccessSound();
-    saveState();
-    renderAllUI();
-    showToast(`Pattern "${pattern.toUpperCase()}" applied to calendar! 🎨`, 'success');
+    openModal('modal-day-details');
   }
 
-  function toggleLiveStream() {
-    const btn = document.getElementById('btn-live-stream');
-    if (liveStreamInterval) {
-      clearInterval(liveStreamInterval);
-      liveStreamInterval = null;
-      btn.classList.remove('btn-live-active');
-      btn.innerHTML = '<span>▶️ Live Stream</span>';
-      showToast('Live commit simulation paused', 'info');
-    } else {
-      btn.classList.add('btn-live-active');
-      btn.innerHTML = '<span>⏹️ Stop Stream</span>';
-      showToast('Live commit stream active! 🔥', 'success');
+  function openAddActivityModal() {
+    const form = document.getElementById('form-add-activity');
+    if (form) form.reset();
 
-      liveStreamInterval = setInterval(() => {
-        const todayKey = '2026-10-07';
-        const randomCommits = Math.floor(Math.random() * 3) + 1;
-        const randomRepo = DEMO_REPOSITORIES[Math.floor(Math.random() * DEMO_REPOSITORIES.length)];
-        const commitMsgs = [
-          'fix(core): memory leak in worker thread',
-          'feat(ui): add glassmorphic card hover',
-          'docs: update API endpoints table',
-          'perf: optimize virtual DOM diffing',
-          'refactor: cleaner async task pipeline'
-        ];
-        const randomMsg = commitMsgs[Math.floor(Math.random() * commitMsgs.length)];
-
-        addCommitsToDate(todayKey, randomCommits, randomRepo, randomMsg);
-        playCommitSound();
-      }, 2400);
-    }
-  }
-
-  function openExportModal() {
-    const year = appState.selectedYear;
-    const stats = calculateStatistics(year);
-    const score = document.getElementById('consistency-score-num')?.textContent || '85';
-
-    const text = `### 🟩 GitHub Green Squares Ka Junoon — Activity Summary
-**Year:** ${year}
-- 🔥 **Current Streak:** ${stats.currentStreak} days
-- 🏆 **Longest Streak:** ${stats.longestStreak} days
-- 💚 **Total Contributions:** ${stats.totalContributions.toLocaleString()} commits
-- 📦 **Active Repositories:** ${stats.activeReposCount} repos
-- ⚡ **Consistency Score:** ${score} / 100
-
-*Simulated with GitHub Green Squares Ka Junoon*
-*"Commit karo. Green squares banao. Streak maintain karo. 🔥"*`;
-
-    const area = document.getElementById('export-textarea');
-    if (area) area.value = text;
-    showModal('export-modal');
-  }
-
-  function cycleMotivationalQuote() {
-    const quoteEl = document.getElementById('motivational-quote');
-    const cornerQuoteEl = document.getElementById('corner-quote-text');
-
-    const randomIdx = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
-    const chosen = MOTIVATIONAL_QUOTES[randomIdx];
-
-    if (quoteEl) {
-      quoteEl.style.opacity = '0';
-      setTimeout(() => {
-        quoteEl.textContent = `"${chosen}"`;
-        quoteEl.style.opacity = '1';
-      }, 150);
-    }
-
-    if (cornerQuoteEl) {
-      cornerQuoteEl.textContent = chosen;
-    }
-  }
-
-  // ==========================================================================
-  // 13. INITIALIZATION & EVENT LISTENERS
-  // ==========================================================================
-
-  function initApp() {
-    // 1. Load saved state from LocalStorage
-    loadState();
-
-    // 2. Default form date to today (2026-10-07)
-    const dateInput = document.getElementById('contrib-date');
+    const dateInput = document.getElementById('add-input-date');
     if (dateInput) {
-      dateInput.value = '2026-10-07';
-      dateInput.min = `${appState.selectedYear}-01-01`;
-      dateInput.max = `${appState.selectedYear}-12-31`;
+      const defaultDate = appState.selectedYear === 2026 ? SIMULATED_TODAY_STR : `${appState.selectedYear}-06-15`;
+      dateInput.value = defaultDate;
     }
 
-    // 3. Set Year Select dropdown
-    const yearSelect = document.getElementById('year-select');
-    if (yearSelect) {
-      yearSelect.value = String(appState.selectedYear);
-      yearSelect.addEventListener('change', (e) => {
-        const newYear = parseInt(e.target.value, 10);
-        appState.selectedYear = newYear;
+    document.querySelectorAll('#form-add-activity .field-error').forEach((el) => {
+      el.style.display = 'none';
+    });
 
-        // Ensure target year has data
-        if (!appState.contributionsByYear[newYear]) {
-          const gen = generateDemoDataForYear(newYear);
-          appState.contributionsByYear[newYear] = gen.data;
+    openModal('modal-add-activity');
+  }
+
+  async function openEditActivityModal(dateStr) {
+    closeModal('modal-day-details');
+    appState.selectedDate = dateStr;
+
+    const year = parseInt(dateStr.substring(0, 4), 10);
+    const yearData = await appState.currentProvider.getYearData(year);
+    const entry = (yearData || {})[dateStr] || {
+      date: dateStr,
+      commits: 0,
+      pullRequests: 0,
+      issues: 0,
+      codeReviews: 0,
+      total: 0,
+      repositories: [DEMO_REPOSITORIES[0]],
+      primaryRepo: DEMO_REPOSITORIES[0],
+      note: ''
+    };
+
+    setVal(document.getElementById('edit-hidden-date'), dateStr);
+    setText(document.getElementById('edit-display-date-text'), formatFriendlyDate(dateStr));
+    setVal(document.getElementById('edit-input-repo'), entry.primaryRepo || DEMO_REPOSITORIES[0]);
+    setVal(document.getElementById('edit-commits'), entry.commits || 0);
+    setVal(document.getElementById('edit-prs'), entry.pullRequests || 0);
+    setVal(document.getElementById('edit-issues'), entry.issues || 0);
+    setVal(document.getElementById('edit-reviews'), entry.codeReviews || 0);
+    setVal(document.getElementById('edit-input-note'), entry.note || '');
+
+    openModal('modal-edit-activity');
+  }
+
+  function openDeleteConfirmModal(dateStr) {
+    closeModal('modal-day-details');
+    appState.selectedDate = dateStr;
+    setText(document.getElementById('delete-target-date'), formatFriendlyDate(dateStr));
+    openModal('modal-delete-confirm');
+  }
+
+  function openGenerateDemoModal() {
+    setText(document.getElementById('gen-target-year'), String(appState.selectedYear));
+    openModal('modal-generate-demo');
+  }
+
+  function openResetConfirmModal() {
+    openModal('modal-reset-confirm');
+  }
+
+  function openImportModal() {
+    const fileInput = document.getElementById('import-file-input');
+    if (fileInput) fileInput.value = '';
+    const errBox = document.getElementById('err-import-file');
+    if (errBox) errBox.style.display = 'none';
+    const previewBox = document.getElementById('import-preview-box');
+    if (previewBox) previewBox.style.display = 'none';
+    openModal('modal-import-data');
+  }
+
+  function openAchievementDetailModal(achieve, isUnlocked, progressPct, currentText) {
+    setText(document.getElementById('achieve-modal-icon'), achieve.icon);
+    setText(document.getElementById('achieve-modal-symbol'), achieve.icon);
+    setText(document.getElementById('achieve-modal-name'), achieve.name);
+
+    const badgeEl = document.getElementById('achieve-modal-badge');
+    if (badgeEl) {
+      badgeEl.textContent = isUnlocked ? 'Unlocked' : 'In Progress';
+      badgeEl.className = `status-pill ${isUnlocked ? 'status-unlocked' : 'status-locked'}`;
+    }
+
+    setText(document.getElementById('achieve-modal-desc'), `${achieve.desc} Requirement: ${achieve.req}.`);
+    setText(document.getElementById('achieve-modal-progress-text'), currentText);
+
+    const fill = document.getElementById('achieve-modal-progress-fill');
+    if (fill) fill.style.width = `${progressPct}%`;
+
+    openModal('modal-achievement-detail');
+  }
+
+  // ==========================================================================
+  // 9. TOAST NOTIFICATION SYSTEM (Section 28)
+  // ==========================================================================
+
+  function showToast(message, type = 'info', duration = 3500) {
+    if (!DOM.toastContainer) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.setAttribute('role', 'alert');
+
+    const icons = {
+      success: '✓',
+      error: '✕',
+      warning: '⚠️',
+      info: 'ℹ️'
+    };
+
+    toast.innerHTML = `
+      <div class="toast-content">
+        <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
+        <span>${escapeHtml(message)}</span>
+      </div>
+      <button type="button" class="toast-close-btn" aria-label="Dismiss notification">&times;</button>
+    `;
+
+    const closeBtn = toast.querySelector('.toast-close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        dismissToast(toast);
+      });
+    }
+
+    DOM.toastContainer.appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.classList.add('show');
+    });
+
+    const timer = setTimeout(() => {
+      dismissToast(toast);
+    }, duration);
+
+    toast.dataset.timer = String(timer);
+  }
+
+  function dismissToast(toast) {
+    if (!toast) return;
+    toast.classList.remove('show');
+    if (toast.dataset.timer) {
+      clearTimeout(parseInt(toast.dataset.timer, 10));
+    }
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }
+
+  // ==========================================================================
+  // 10. TOOLTIP COMPONENT (HEATMAP & CHARTS)
+  // ==========================================================================
+
+  function showHeatmapTooltip(e, data) {
+    if (!DOM.appTooltip) return;
+
+    DOM.appTooltip.innerHTML = `
+      <div style="font-weight: 700; margin-bottom: 2px;">${formatFriendlyDate(data.dateStr)}</div>
+      <div style="color: var(--contrib-4); font-weight: 700;">${data.count} contribution${data.count === 1 ? '' : 's'}</div>
+      <div style="font-size: 0.7rem; color: #8b949e; margin-top: 3px;">
+        ${data.commits} commits • ${data.prs} PRs • ${data.issues} issues • ${data.reviews} reviews
+      </div>
+      ${data.repos && data.repos.length > 0 ? `<div style="font-size: 0.68rem; color: #58a6ff; margin-top: 2px;">📁 ${data.repos.join(', ')}</div>` : ''}
+    `;
+
+    positionTooltip(e);
+    DOM.appTooltip.style.display = 'block';
+    DOM.appTooltip.setAttribute('aria-hidden', 'false');
+  }
+
+  function showGenericTooltip(e, text) {
+    if (!DOM.appTooltip) return;
+    DOM.appTooltip.innerHTML = `<div>${escapeHtml(text)}</div>`;
+    positionTooltip(e);
+    DOM.appTooltip.style.display = 'block';
+    DOM.appTooltip.setAttribute('aria-hidden', 'false');
+  }
+
+  function positionTooltip(e) {
+    if (!DOM.appTooltip) return;
+    const target = e.currentTarget || e.target;
+    const rect = target.getBoundingClientRect();
+
+    let left = rect.left + rect.width / 2;
+    let top = rect.top;
+
+    if (left < 80) left = 80;
+    if (left > window.innerWidth - 80) left = window.innerWidth - 80;
+
+    DOM.appTooltip.style.left = `${left}px`;
+    DOM.appTooltip.style.top = `${top}px`;
+  }
+
+  function hideHeatmapTooltip() {
+    if (!DOM.appTooltip) return;
+    DOM.appTooltip.style.display = 'none';
+    DOM.appTooltip.setAttribute('aria-hidden', 'true');
+  }
+
+  // ==========================================================================
+  // 11. THEME ENGINE & MOBILE NAVIGATION (Sections 27 & 28)
+  // ==========================================================================
+
+  function initTheme() {
+    let savedTheme = 'dark';
+    try {
+      savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+    } catch (e) {}
+
+    applyTheme(savedTheme);
+
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (appState.currentTheme === 'system') {
+          applyTheme('system');
         }
-
-        if (dateInput) {
-          dateInput.min = `${newYear}-01-01`;
-          dateInput.max = `${newYear}-12-31`;
-          dateInput.value = `${newYear}-05-15`;
-        }
-
-        saveState();
-        renderAllUI();
-        showToast(`Loaded ${newYear} sample contribution data`, 'info');
       });
-    }
-
-    // Palette dropdown
-    const paletteSelect = document.getElementById('palette-select');
-    if (paletteSelect) {
-      paletteSelect.value = appState.palette || 'emerald';
-      paletteSelect.addEventListener('change', (e) => {
-        setPalette(e.target.value);
-      });
-    }
-
-    // Preset Art dropdown
-    const presetArtSelect = document.getElementById('preset-art-select');
-    if (presetArtSelect) {
-      presetArtSelect.addEventListener('change', (e) => {
-        applyPresetArt(e.target.value);
-        e.target.value = '';
-      });
-    }
-
-    // 4. Intensity Filter Select dropdown
-    const filterSelect = document.getElementById('filter-select');
-    if (filterSelect) {
-      filterSelect.value = appState.activeIntensityFilter || 'all';
-      filterSelect.addEventListener('change', (e) => {
-        applyFilter(e.target.value);
-      });
-    }
-
-    // Filter Chips
-    const chips = document.querySelectorAll('.chip');
-    chips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        const filterVal = chip.getAttribute('data-filter');
-        applyFilter(filterVal);
-      });
-    });
-
-    function applyFilter(filterVal) {
-      appState.activeIntensityFilter = filterVal;
-      if (filterSelect) filterSelect.value = filterVal;
-
-      chips.forEach(c => {
-        c.classList.toggle('active', c.getAttribute('data-filter') === filterVal);
-      });
-
-      saveState();
-      renderHeatmap();
-    }
-
-    // 5. Action Buttons (Generate, Reset, Live Stream, Painter, Export)
-    document.getElementById('btn-generate-activity')?.addEventListener('click', generateNewDemoActivity);
-    document.getElementById('btn-reset-data')?.addEventListener('click', () => {
-      showModal('reset-modal');
-    });
-
-    document.getElementById('btn-live-stream')?.addEventListener('click', toggleLiveStream);
-    document.getElementById('btn-toggle-paint')?.addEventListener('click', togglePaintMode);
-    document.getElementById('btn-export-summary')?.addEventListener('click', openExportModal);
-
-    // Brush buttons
-    document.querySelectorAll('.brush-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        const level = parseInt(b.getAttribute('data-brush'), 10);
-        setBrush(level);
-      });
-    });
-
-    // Window mouseup to end drag painting
-    window.addEventListener('mouseup', () => {
-      if (isMousePainting) {
-        isMousePainting = false;
-        saveState();
-        renderAllUI();
-      }
-    });
-
-    // 6. Clear Repo Filter Button
-    document.getElementById('btn-clear-repo-filter')?.addEventListener('click', () => {
-      appState.selectedRepoFilter = null;
-      saveState();
-      renderAllUI();
-      showToast('All repositories active', 'info');
-    });
-
-    // 7. Add Contribution Form Submit & Steppers
-    document.getElementById('add-contribution-form')?.addEventListener('submit', handleAddContributionForm);
-
-    document.getElementById('btn-count-sub')?.addEventListener('click', () => {
-      const countInput = document.getElementById('contrib-count');
-      const cur = parseInt(countInput.value, 10) || 1;
-      if (cur > 1) countInput.value = cur - 1;
-    });
-
-    document.getElementById('btn-count-add')?.addEventListener('click', () => {
-      const countInput = document.getElementById('contrib-count');
-      const cur = parseInt(countInput.value, 10) || 1;
-      if (cur < 50) countInput.value = cur + 1;
-    });
-
-    // 8. Weekly Goal Stepper
-    document.getElementById('btn-goal-minus')?.addEventListener('click', () => {
-      const input = document.getElementById('goal-input');
-      const cur = parseInt(input.value, 10) || 20;
-      if (cur > 5) {
-        appState.weeklyGoal = cur - 5;
-        saveState();
-        renderAllUI();
-        showToast(`Weekly goal updated to ${appState.weeklyGoal} commits`, 'info');
-      }
-    });
-
-    document.getElementById('btn-goal-plus')?.addEventListener('click', () => {
-      const input = document.getElementById('goal-input');
-      const cur = parseInt(input.value, 10) || 20;
-      if (cur < 100) {
-        appState.weeklyGoal = cur + 5;
-        saveState();
-        renderAllUI();
-        showToast(`Weekly goal updated to ${appState.weeklyGoal} commits`, 'info');
-      }
-    });
-
-    document.getElementById('goal-input')?.addEventListener('change', (e) => {
-      const val = parseInt(e.target.value, 10);
-      if (!isNaN(val) && val >= 5 && val <= 100) {
-        appState.weeklyGoal = val;
-        saveState();
-        renderAllUI();
-        showToast(`Weekly goal set to ${val} commits`, 'info');
-      }
-    });
-
-    // 9. Motivational Quote Buttons
-    document.getElementById('btn-motivate')?.addEventListener('click', cycleMotivationalQuote);
-    document.getElementById('btn-next-quote')?.addEventListener('click', cycleMotivationalQuote);
-
-    // 10. Theme & Sound Toggles
-    document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
-    document.getElementById('sound-toggle')?.addEventListener('click', toggleSound);
-
-    // 11. Navigation Smooth Scroll & Active Indicator
-    const navLinks = document.querySelectorAll('.nav-link');
-    window.addEventListener('scroll', () => {
-      const scrollPos = window.scrollY + 100;
-      document.querySelectorAll('section[id]').forEach(sec => {
-        if (scrollPos >= sec.offsetTop && scrollPos < sec.offsetTop + sec.offsetHeight) {
-          const id = sec.getAttribute('id');
-          navLinks.forEach(link => {
-            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-          });
-        }
-      });
-    });
-
-    // 12. Modals Setup
-    initModals();
-
-    // 13. Render Initial State
-    renderAllUI();
-
-    // Scroll heatmap horizontally so modern recent weeks are in view on desktop
-    const scrollArea = document.getElementById('heatmap-scroll-area');
-    if (scrollArea) {
-      setTimeout(() => {
-        scrollArea.scrollLeft = scrollArea.scrollWidth;
-      }, 100);
     }
   }
 
-  // Run on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-  } else {
-    initApp();
+  function applyTheme(theme) {
+    appState.currentTheme = theme;
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch (e) {}
+
+    let effective = theme;
+    if (theme === 'system') {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      effective = prefersDark ? 'dark' : 'light';
+    }
+
+    document.documentElement.setAttribute('data-theme', effective);
+
+    if (DOM.themeIcon) {
+      if (theme === 'dark') DOM.themeIcon.textContent = '🌙';
+      else if (theme === 'light') DOM.themeIcon.textContent = '☀️';
+      else DOM.themeIcon.textContent = '💻';
+    }
+
+    if (DOM.themeLabel) {
+      if (theme === 'dark') DOM.themeLabel.textContent = 'Dark';
+      else if (theme === 'light') DOM.themeLabel.textContent = 'Light';
+      else DOM.themeLabel.textContent = 'System';
+    }
+
+    if (DOM.settingsThemeSelect) {
+      DOM.settingsThemeSelect.value = theme;
+    }
   }
+
+  function toggleMobileMenu(forceState) {
+    if (!DOM.mainNavList || !DOM.btnMobileMenu) return;
+    const isCurrentlyOpen = DOM.mainNavList.classList.contains('mobile-open');
+    const newState = forceState !== undefined ? forceState : !isCurrentlyOpen;
+
+    if (newState) {
+      DOM.mainNavList.classList.add('mobile-open');
+      DOM.btnMobileMenu.classList.add('active');
+      DOM.btnMobileMenu.setAttribute('aria-expanded', 'true');
+    } else {
+      DOM.mainNavList.classList.remove('mobile-open');
+      DOM.btnMobileMenu.classList.remove('active');
+      DOM.btnMobileMenu.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  // ==========================================================================
+  // 12. DATA EXPORT & IMPORT ENGINES (Sections 37 & 38)
+  // ==========================================================================
+
+  function exportApplicationData() {
+    try {
+      let exportPayload = {};
+      if (appState.mode === 'live' && appState.authenticatedUser) {
+        exportPayload = {
+          exportType: 'github_live_analytics',
+          exportedAt: new Date().toISOString(),
+          version: 2,
+          username: appState.authenticatedUser.login,
+          weeklyGoal: appState.weeklyGoal,
+          selectedYear: appState.selectedYear
+        };
+      } else {
+        exportPayload = {
+          exportType: 'demo_dataset',
+          exportedAt: new Date().toISOString(),
+          version: 2,
+          weeklyGoal: demoProvider.getWeeklyGoal(),
+          years: demoProvider.state.years
+        };
+      }
+
+      const jsonStr = JSON.stringify(exportPayload, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      if (DOM.hiddenExportLink) {
+        DOM.hiddenExportLink.href = url;
+        DOM.hiddenExportLink.download = `github-green-squares-${appState.mode}-${Date.now()}.json`;
+        DOM.hiddenExportLink.click();
+        URL.revokeObjectURL(url);
+      }
+      showToast('Exported dataset successfully as JSON.', 'success');
+    } catch (err) {
+      console.error('Export failed:', err);
+      showToast('Failed to export data.', 'error');
+    }
+  }
+
+  function handleImportFile(file) {
+    const errBox = document.getElementById('err-import-file');
+    const previewBox = document.getElementById('import-preview-box');
+    const summaryText = document.getElementById('import-file-summary');
+
+    if (!file || !file.name.endsWith('.json')) {
+      if (errBox) {
+        errBox.textContent = 'Please choose a valid .json file.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (!parsed || typeof parsed !== 'object') {
+          throw new Error('Root is not a valid JSON object');
+        }
+
+        // Validate structure
+        if (parsed.years && typeof parsed.years === 'object') {
+          // Valid full dataset
+          const yearsCount = Object.keys(parsed.years).length;
+          if (summaryText) summaryText.textContent = `✓ Valid backup found: ${yearsCount} years of contribution data.`;
+          if (previewBox) previewBox.style.display = 'block';
+          if (errBox) errBox.style.display = 'none';
+
+          // Store temporarily for confirmation
+          appState.pendingImportData = parsed;
+        } else {
+          throw new Error('Missing years property in backup file');
+        }
+      } catch (err) {
+        if (errBox) {
+          errBox.textContent = `Malformed backup file: ${err.message}`;
+          errBox.style.display = 'block';
+        }
+        if (previewBox) previewBox.style.display = 'none';
+        appState.pendingImportData = null;
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function executeDataImport() {
+    if (!appState.pendingImportData) {
+      const errBox = document.getElementById('err-import-file');
+      if (errBox) {
+        errBox.textContent = 'Please select a valid JSON backup file first.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+
+    try {
+      demoProvider.state.years = appState.pendingImportData.years;
+      if (appState.pendingImportData.weeklyGoal) {
+        demoProvider.state.weeklyGoal = appState.pendingImportData.weeklyGoal;
+        appState.weeklyGoal = appState.pendingImportData.weeklyGoal;
+      }
+      demoProvider.saveAppState();
+
+      closeModal('modal-import-data');
+      showToast('Successfully imported dataset!', 'success');
+      renderAll();
+    } catch (err) {
+      console.error('Import execution failed:', err);
+      showToast('Failed to save imported dataset.', 'error');
+    }
+  }
+
+  // ==========================================================================
+  // 13. API HEALTH CHECK (Section 19)
+  // ==========================================================================
+
+  async function checkApiHealth() {
+    try {
+      const res = await fetch('/api/health');
+      if (res.ok) {
+        const data = await res.json();
+        if (DOM.apiHealthLabel) DOM.apiHealthLabel.textContent = 'API: ● Connected';
+        if (DOM.apiHealthBadge) DOM.apiHealthBadge.className = 'health-badge';
+      } else {
+        if (DOM.apiHealthLabel) DOM.apiHealthLabel.textContent = 'API: ● Standalone';
+      }
+    } catch (err) {
+      if (DOM.apiHealthLabel) DOM.apiHealthLabel.textContent = 'API: ● Local Mode';
+    }
+  }
+
+  // ==========================================================================
+  // 14. EVENT LISTENERS & FORM SUBMISSIONS
+  // ==========================================================================
+
+  function initEventListeners() {
+    // 1. Mobile Menu Toggle
+    if (DOM.btnMobileMenu) {
+      DOM.btnMobileMenu.addEventListener('click', () => toggleMobileMenu());
+    }
+
+    // 2. Navigation smooth scroll & close mobile menu
+    document.querySelectorAll('.header-nav a, .footer-links a').forEach((link) => {
+      link.addEventListener('click', (e) => {
+        const targetId = link.getAttribute('href');
+        if (targetId && targetId.startsWith('#')) {
+          const el = document.querySelector(targetId);
+          if (el) {
+            e.preventDefault();
+            el.scrollIntoView({ behavior: 'smooth' });
+            document.querySelectorAll('.header-nav .nav-item').forEach((n) => n.classList.remove('active'));
+            link.classList.add('active');
+            toggleMobileMenu(false);
+          }
+        }
+      });
+    });
+
+    // 3. GitHub OAuth Connect & Disconnect Actions
+    if (DOM.btnConnectGithub) {
+      DOM.btnConnectGithub.addEventListener('click', () => {
+        window.location.href = '/api/auth/github/login';
+      });
+    }
+
+    if (DOM.btnDisconnectGithub) {
+      DOM.btnDisconnectGithub.addEventListener('click', () => {
+        window.location.href = '/api/auth/github/logout';
+      });
+    }
+
+    if (DOM.btnRefreshGithub) {
+      DOM.btnRefreshGithub.addEventListener('click', async () => {
+        if (appState.currentProvider instanceof GitHubDataProvider) {
+          appState.currentProvider.clearCache();
+          showToast('Refreshing live GitHub contributions...', 'info');
+          await renderAll();
+          showToast('Refreshed latest GitHub contributions.', 'success');
+        }
+      });
+    }
+
+    // 4. Theme Dropdown
+    if (DOM.themeBtn && DOM.themeMenu) {
+      DOM.themeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = DOM.themeMenu.classList.contains('show');
+        if (isOpen) {
+          DOM.themeMenu.classList.remove('show');
+          DOM.themeBtn.setAttribute('aria-expanded', 'false');
+        } else {
+          DOM.themeMenu.classList.add('show');
+          DOM.themeBtn.setAttribute('aria-expanded', 'true');
+        }
+      });
+
+      document.querySelectorAll('#theme-menu .dropdown-item').forEach((item) => {
+        item.addEventListener('click', () => {
+          const val = item.getAttribute('data-theme-value');
+          if (val) {
+            applyTheme(val);
+            DOM.themeMenu.classList.remove('show');
+            DOM.themeBtn.setAttribute('aria-expanded', 'false');
+            showToast(`Theme switched to ${val}`, 'info');
+          }
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        if (DOM.themeMenu && !DOM.themeMenu.contains(e.target) && e.target !== DOM.themeBtn) {
+          DOM.themeMenu.classList.remove('show');
+          if (DOM.themeBtn) DOM.themeBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    if (DOM.settingsThemeSelect) {
+      DOM.settingsThemeSelect.addEventListener('change', (e) => {
+        applyTheme(e.target.value);
+        showToast(`Theme switched to ${e.target.value}`, 'info');
+      });
+    }
+
+    // 5. Year Selector
+    if (DOM.yearSelect) {
+      DOM.yearSelect.addEventListener('change', async (e) => {
+        appState.selectedYear = parseInt(e.target.value, 10);
+        showToast(`Switched view to year ${appState.selectedYear}`, 'info');
+        await renderAll();
+      });
+    }
+
+    // 6. Activity Type Filters
+    if (DOM.typeFilterSelect) {
+      DOM.typeFilterSelect.addEventListener('change', async (e) => {
+        appState.activeFilter = e.target.value;
+        DOM.filterPills.forEach((p) => {
+          if (p.getAttribute('data-type') === appState.activeFilter) p.classList.add('active');
+          else p.classList.remove('active');
+        });
+        showToast(`Filtered by ${appState.activeFilter.toUpperCase()}`, 'info');
+        await renderAll();
+      });
+    }
+
+    DOM.filterPills.forEach((pill) => {
+      pill.addEventListener('click', async () => {
+        const type = pill.getAttribute('data-type');
+        if (!type) return;
+        appState.activeFilter = type;
+        if (DOM.typeFilterSelect) DOM.typeFilterSelect.value = type;
+        DOM.filterPills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        showToast(`Filtered by ${type.toUpperCase()}`, 'info');
+        await renderAll();
+      });
+    });
+
+    // 7. Header Quick Action Buttons
+    if (DOM.btnHeaderAdd) DOM.btnHeaderAdd.addEventListener('click', openAddActivityModal);
+    if (DOM.btnAddActivityModal) DOM.btnAddActivityModal.addEventListener('click', openAddActivityModal);
+
+    if (DOM.btnHeaderGenerate) DOM.btnHeaderGenerate.addEventListener('click', openGenerateDemoModal);
+    if (DOM.btnOpenGenModal) DOM.btnOpenGenModal.addEventListener('click', openGenerateDemoModal);
+    if (DOM.btnSettingsOpenGen) DOM.btnSettingsOpenGen.addEventListener('click', openGenerateDemoModal);
+
+    if (DOM.btnHeaderReset) DOM.btnHeaderReset.addEventListener('click', openResetConfirmModal);
+    if (DOM.btnSettingsReset) DOM.btnSettingsReset.addEventListener('click', openResetConfirmModal);
+
+    // 8. Clear Repository Filter
+    if (DOM.btnClearRepoFilter) {
+      DOM.btnClearRepoFilter.addEventListener('click', async () => {
+        appState.activeRepoFilter = null;
+        showToast('Cleared repository filter', 'info');
+        await renderAll();
+      });
+    }
+
+    // 9. Weekly Goal Stepper & Inputs
+    function updateGoal(newVal) {
+      const savedVal = demoProvider.setWeeklyGoal(newVal);
+      appState.weeklyGoal = savedVal;
+      showToast(`Weekly goal updated to ${savedVal} contributions`, 'success');
+      appState.currentProvider.getYearData(appState.selectedYear).then((yearData) => {
+        renderWeeklyGoal(yearData);
+      });
+    }
+
+    if (DOM.btnGoalDec) DOM.btnGoalDec.addEventListener('click', () => updateGoal(appState.weeklyGoal - 5));
+    if (DOM.btnGoalInc) DOM.btnGoalInc.addEventListener('click', () => updateGoal(appState.weeklyGoal + 5));
+    if (DOM.goalTargetInput) DOM.goalTargetInput.addEventListener('change', (e) => updateGoal(parseInt(e.target.value, 10)));
+    if (DOM.settingsGoalInput) DOM.settingsGoalInput.addEventListener('change', (e) => updateGoal(parseInt(e.target.value, 10)));
+
+    // 10. Data Backup & Migration (Export / Import)
+    if (DOM.btnExportData) DOM.btnExportData.addEventListener('click', exportApplicationData);
+    if (DOM.btnImportData) DOM.btnImportData.addEventListener('click', openImportModal);
+
+    const importFileInput = document.getElementById('import-file-input');
+    if (importFileInput) {
+      importFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleImportFile(e.target.files[0]);
+        }
+      });
+    }
+
+    const btnCloseImport = document.getElementById('btn-close-import-modal');
+    const btnCancelImport = document.getElementById('btn-cancel-import');
+    const btnConfirmImport = document.getElementById('btn-confirm-import');
+
+    if (btnCloseImport) btnCloseImport.addEventListener('click', () => closeModal('modal-import-data'));
+    if (btnCancelImport) btnCancelImport.addEventListener('click', () => closeModal('modal-import-data'));
+    if (btnConfirmImport) btnConfirmImport.addEventListener('click', executeDataImport);
+
+    // 11. Day Details Modal Actions
+    const closeDayModalBtn = document.getElementById('btn-close-day-modal');
+    const closeDayActionBtn = document.getElementById('btn-day-close-action');
+    const editDayBtn = document.getElementById('btn-day-edit');
+    const deleteDayBtn = document.getElementById('btn-day-delete');
+
+    if (closeDayModalBtn) closeDayModalBtn.addEventListener('click', () => closeModal('modal-day-details'));
+    if (closeDayActionBtn) closeDayActionBtn.addEventListener('click', () => closeModal('modal-day-details'));
+
+    if (editDayBtn) {
+      editDayBtn.addEventListener('click', () => {
+        if (appState.selectedDate) {
+          openEditActivityModal(appState.selectedDate);
+        }
+      });
+    }
+
+    if (deleteDayBtn) {
+      deleteDayBtn.addEventListener('click', () => {
+        if (appState.selectedDate) {
+          openDeleteConfirmModal(appState.selectedDate);
+        }
+      });
+    }
+
+    // 12. Add Activity Form Submission
+    const addForm = document.getElementById('form-add-activity');
+    const closeAddModalBtn = document.getElementById('btn-close-add-modal');
+    const cancelAddBtn = document.getElementById('btn-cancel-add');
+
+    if (closeAddModalBtn) closeAddModalBtn.addEventListener('click', () => closeModal('modal-add-activity'));
+    if (cancelAddBtn) cancelAddBtn.addEventListener('click', () => closeModal('modal-add-activity'));
+
+    if (addForm) {
+      addForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const dateVal = document.getElementById('add-input-date').value;
+        const repoVal = document.getElementById('add-input-repo').value;
+        const typeVal = document.getElementById('add-input-type').value;
+        const countVal = parseInt(document.getElementById('add-input-count').value, 10);
+        const noteVal = document.getElementById('add-input-note').value.trim();
+
+        let hasError = false;
+        const errDate = document.getElementById('err-add-date');
+        const errRepo = document.getElementById('err-add-repo');
+        const errCount = document.getElementById('err-add-count');
+
+        if (!dateVal || isNaN(new Date(dateVal).getTime())) {
+          if (errDate) errDate.style.display = 'block';
+          hasError = true;
+        } else {
+          if (errDate) errDate.style.display = 'none';
+        }
+
+        if (!repoVal) {
+          if (errRepo) errRepo.style.display = 'block';
+          hasError = true;
+        } else {
+          if (errRepo) errRepo.style.display = 'none';
+        }
+
+        if (isNaN(countVal) || countVal < 1 || countVal > 100) {
+          if (errCount) errCount.style.display = 'block';
+          hasError = true;
+        } else {
+          if (errCount) errCount.style.display = 'none';
+        }
+
+        if (hasError) return;
+
+        const targetYear = parseInt(dateVal.substring(0, 4), 10);
+
+        await appState.currentProvider.addActivity(targetYear, {
+          date: dateVal,
+          repo: repoVal,
+          type: typeVal,
+          count: countVal,
+          note: noteVal
+        });
+
+        closeModal('modal-add-activity');
+        showToast(`Added ${countVal} ${typeVal} to ${formatFriendlyDate(dateVal)}`, 'success');
+
+        if (targetYear !== appState.selectedYear) {
+          appState.selectedYear = targetYear;
+          if (DOM.yearSelect) DOM.yearSelect.value = String(targetYear);
+        }
+
+        await renderAll();
+      });
+    }
+
+    // 13. Edit Activity Form Submission
+    const editForm = document.getElementById('form-edit-activity');
+    const closeEditModalBtn = document.getElementById('btn-close-edit-modal');
+    const cancelEditBtn = document.getElementById('btn-cancel-edit');
+
+    if (closeEditModalBtn) closeEditModalBtn.addEventListener('click', () => closeModal('modal-edit-activity'));
+    if (cancelEditBtn) cancelEditBtn.addEventListener('click', () => closeModal('modal-edit-activity'));
+
+    if (editForm) {
+      editForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const dateStr = document.getElementById('edit-hidden-date').value;
+        const repo = document.getElementById('edit-input-repo').value;
+        const commits = parseInt(document.getElementById('edit-commits').value, 10) || 0;
+        const prs = parseInt(document.getElementById('edit-prs').value, 10) || 0;
+        const issues = parseInt(document.getElementById('edit-issues').value, 10) || 0;
+        const reviews = parseInt(document.getElementById('edit-reviews').value, 10) || 0;
+        const note = document.getElementById('edit-input-note').value.trim();
+
+        const targetYear = parseInt(dateStr.substring(0, 4), 10);
+
+        await appState.currentProvider.updateActivity(targetYear, {
+          date: dateStr,
+          primaryRepo: repo,
+          commits,
+          pullRequests: prs,
+          issues,
+          codeReviews: reviews,
+          note
+        });
+
+        closeModal('modal-edit-activity');
+        showToast(`Updated activity for ${formatFriendlyDate(dateStr)}`, 'success');
+        await renderAll();
+      });
+    }
+
+    // 14. Delete Activity Actions
+    const closeDeleteModalBtn = document.getElementById('btn-close-delete-modal');
+    const cancelDeleteBtn = document.getElementById('btn-cancel-delete');
+    const confirmDeleteBtn = document.getElementById('btn-confirm-delete');
+
+    if (closeDeleteModalBtn) closeDeleteModalBtn.addEventListener('click', () => closeModal('modal-delete-confirm'));
+    if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', () => closeModal('modal-delete-confirm'));
+
+    if (confirmDeleteBtn) {
+      confirmDeleteBtn.addEventListener('click', async () => {
+        if (appState.selectedDate) {
+          const targetYear = parseInt(appState.selectedDate.substring(0, 4), 10);
+          await appState.currentProvider.deleteActivity(targetYear, appState.selectedDate);
+          closeModal('modal-delete-confirm');
+          showToast(`Deleted activity for ${formatFriendlyDate(appState.selectedDate)}`, 'info');
+          await renderAll();
+        }
+      });
+    }
+
+    // 15. Generate Demo Activity Actions
+    const closeGenModalBtn = document.getElementById('btn-close-gen-modal');
+    const cancelGenBtn = document.getElementById('btn-cancel-gen');
+    const confirmGenBtn = document.getElementById('btn-confirm-gen');
+
+    if (closeGenModalBtn) closeGenModalBtn.addEventListener('click', () => closeModal('modal-generate-demo'));
+    if (cancelGenBtn) cancelGenBtn.addEventListener('click', () => closeModal('modal-generate-demo'));
+
+    document.querySelectorAll('.intensity-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.intensity-card').forEach((c) => c.classList.remove('selected'));
+        card.classList.add('selected');
+      });
+    });
+
+    if (confirmGenBtn) {
+      confirmGenBtn.addEventListener('click', async () => {
+        const selectedRadio = document.querySelector('input[name="demo-intensity"]:checked');
+        const intensity = selectedRadio ? selectedRadio.value : 'normal';
+
+        await appState.currentProvider.generateDemo(appState.selectedYear, intensity);
+        closeModal('modal-generate-demo');
+        showToast(`Generated ${intensity.toUpperCase()} demo dataset for ${appState.selectedYear}`, 'success');
+        await renderAll();
+      });
+    }
+
+    // 16. Reset All Data Actions
+    const closeResetModalBtn = document.getElementById('btn-close-reset-modal');
+    const cancelResetBtn = document.getElementById('btn-cancel-reset');
+    const confirmResetBtn = document.getElementById('btn-confirm-reset');
+
+    if (closeResetModalBtn) closeResetModalBtn.addEventListener('click', () => closeModal('modal-reset-confirm'));
+    if (cancelResetBtn) cancelResetBtn.addEventListener('click', () => closeModal('modal-reset-confirm'));
+
+    if (confirmResetBtn) {
+      confirmResetBtn.addEventListener('click', async () => {
+        await appState.currentProvider.resetAll();
+        appState.activeFilter = 'all';
+        appState.activeRepoFilter = null;
+        if (DOM.typeFilterSelect) DOM.typeFilterSelect.value = 'all';
+        DOM.filterPills.forEach((p) => {
+          if (p.getAttribute('data-type') === 'all') p.classList.add('active');
+          else p.classList.remove('active');
+        });
+        closeModal('modal-reset-confirm');
+        showToast('Application reset to initial demo state', 'warning');
+        await renderAll();
+      });
+    }
+
+    // 17. Achievement Modal Close
+    const closeAchieveModalBtn = document.getElementById('btn-close-achieve-modal');
+    const closeAchieveActionBtn = document.getElementById('btn-close-achieve-action');
+    if (closeAchieveModalBtn) closeAchieveModalBtn.addEventListener('click', () => closeModal('modal-achievement-detail'));
+    if (closeAchieveActionBtn) closeAchieveActionBtn.addEventListener('click', () => closeModal('modal-achievement-detail'));
+  }
+
+  // ==========================================================================
+  // 15. HELPER UTILITIES
+  // ==========================================================================
+
+  function formatDateToISO(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function parseISODate(dateStr) {
+    const parts = String(dateStr).split('-');
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  }
+
+  function formatFriendlyDate(dateStr) {
+    if (!dateStr) return '';
+    const d = parseISODate(dateStr);
+    return `${MONTH_NAMES_FULL[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // ==========================================================================
+  // 16. BOOTSTRAP INITIALIZATION SEQUENCE (Section 1)
+  // DOMContentLoaded -> Load Config -> Load Auth -> Load State -> Calculate -> Render -> Bind Events -> Ready
+  // ==========================================================================
+
+  async function bootstrapApp() {
+    try {
+      // 1. Initialize validated DOM references
+      initDOMReferences();
+
+      // 2. Initialize theme preferences
+      initTheme();
+
+      // 3. Check for OAuth callback query parameters in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('auth')) {
+        showToast('Connected to GitHub! Loading your live analytics...', 'success');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (urlParams.has('auth_error')) {
+        showToast(`GitHub authorization failed: ${urlParams.get('auth_error')}`, 'error', 5000);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (urlParams.has('logged_out')) {
+        showToast('Logged out of GitHub. Restored Demo Mode.', 'info');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      // 4. Check GitHub authentication state
+      const authResult = await githubProvider.checkAuth();
+      if (authResult.authenticated && authResult.user) {
+        appState.mode = 'live';
+        appState.currentProvider = githubProvider;
+        appState.authenticatedUser = authResult.user;
+      } else {
+        appState.mode = 'demo';
+        appState.currentProvider = demoProvider;
+        appState.authenticatedUser = null;
+      }
+
+      // 5. Check API health in background
+      checkApiHealth();
+
+      // 6. Bind interactive event listeners
+      initEventListeners();
+
+      // 7. Initial full application render
+      await renderAll();
+
+      console.log('🟩 GitHub Green Squares Analytics V2 initialized successfully.');
+    } catch (err) {
+      console.error('Fatal initialization error:', err);
+      showToast('Something went wrong during application startup. Restoring demo state.', 'error');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', bootstrapApp);
 
 })();

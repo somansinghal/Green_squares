@@ -4,14 +4,51 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GitHub Green Squares — Developer Contribution Analytics</title>
-  <meta name="description" content="Turn your coding activity into measurable developer progress. GitHub-inspired developer contribution analytics dashboard with heatmap, streak tracking, repository metrics, and consistency scoring.">
+  <meta name="description" content="GitHub Green Squares is a developer contribution analytics dashboard for visualizing coding activity, GitHub contributions, streaks, repositories, achievements, and developer consistency.">
+  <link rel="canonical" href="https://githubgreensquare.vercel.app/">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Soman Singhal">
   <meta name="theme-color" content="#0d1117">
+  <meta name="google-site-verification" content="google43d334ab82b2aeee">
   
   <!-- Open Graph Metadata -->
   <meta property="og:title" content="GitHub Green Squares — Developer Contribution Analytics">
-  <meta property="og:description" content="Turn your coding activity into measurable developer progress. Track commits, PRs, issues, reviews, and streaks with zero dependencies.">
+  <meta property="og:description" content="GitHub Green Squares is a developer contribution analytics dashboard for visualizing coding activity, GitHub contributions, streaks, repositories, achievements, and developer consistency.">
+  <meta property="og:url" content="https://githubgreensquare.vercel.app/">
   <meta property="og:type" content="website">
-  
+  <meta property="og:image" content="https://githubgreensquare.vercel.app/assets/social-preview.png">
+  <meta property="og:site_name" content="GitHub Green Squares">
+
+  <!-- Twitter / X Card Metadata -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="GitHub Green Squares — Developer Contribution Analytics">
+  <meta name="twitter:description" content="Turn your coding activity into measurable developer progress. Visualize GitHub contributions, streaks, repositories, and achievements.">
+  <meta name="twitter:image" content="https://githubgreensquare.vercel.app/assets/social-preview.png">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "GitHub Green Squares",
+    "description": "GitHub Green Squares is a developer contribution analytics dashboard for visualizing coding activity, GitHub contributions, streaks, repositories, achievements, and developer consistency.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "All",
+    "url": "https://githubgreensquare.vercel.app/",
+    "author": {
+      "@type": "Person",
+      "name": "Soman Singhal",
+      "url": "https://somansinghal.vercel.app/"
+    }
+  }
+  </script>
+
+  <!-- Favicon & PWA Icons -->
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="alternate icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+
   <link rel="stylesheet" href="style.css">
   
   <!-- Typography from Google Fonts -->
@@ -34,16 +71,25 @@
     <div class="header-container container">
       <div class="header-brand-wrap">
         <a href="#dashboard" class="brand-link" aria-label="GitHub Green Squares Home">
-          <div class="brand-square" aria-hidden="true">🟩</div>
+          <div class="brand-square" aria-hidden="true">
+            <img src="assets/logo-mark.svg" alt="" width="34" height="34" class="brand-logo-img">
+          </div>
           <div class="brand-titles">
             <span class="brand-title">GitHub Green Squares</span>
             <span class="brand-subtitle">Developer Contribution Analytics</span>
           </div>
         </a>
+
+        <!-- Mobile Menu Toggle Button (Section 27) -->
+        <button id="btn-mobile-menu" class="btn-mobile-menu" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="main-nav-list">
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+        </button>
       </div>
 
       <nav class="header-nav" aria-label="Main Navigation">
-        <ul class="nav-list">
+        <ul class="nav-list" id="main-nav-list">
           <li><a href="#dashboard" class="nav-item active">Dashboard</a></li>
           <li><a href="#activity-section" class="nav-item">Activity</a></li>
           <li><a href="#analytics-section" class="nav-item">Analytics</a></li>
@@ -53,6 +99,29 @@
       </nav>
 
       <div class="header-actions">
+        <!-- GitHub Connect / Auth Section (Section 3, 10, 16) -->
+        <div id="github-auth-actions" class="auth-actions-wrap">
+          <!-- Unauthenticated state: Connect button -->
+          <button id="btn-connect-github" class="btn btn-github btn-sm" type="button" title="Connect your real GitHub account">
+            <svg class="gh-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+            </svg>
+            <span>Connect GitHub</span>
+          </button>
+
+          <!-- Authenticated state: Connected badge + Refresh + Disconnect (Hidden by default) -->
+          <div id="user-connected-badge" class="user-connected-badge" style="display: none;">
+            <img id="header-user-avatar" class="header-avatar" src="" alt="GitHub User Avatar">
+            <span id="header-user-name" class="header-username">@user</span>
+            <button id="btn-refresh-github" class="btn btn-ghost btn-xs" type="button" title="Refresh GitHub Data">
+              <span>🔄 Sync</span>
+            </button>
+            <button id="btn-disconnect-github" class="btn btn-ghost btn-xs text-danger" type="button" title="Disconnect GitHub">
+              <span>Disconnect</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Theme Switcher Dropdown -->
         <div class="theme-dropdown-wrap">
           <button id="theme-btn" class="btn btn-ghost btn-sm" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Change theme">
@@ -68,12 +137,12 @@
 
         <!-- Quick Action: Add Activity -->
         <button id="btn-header-add" class="btn btn-primary btn-sm" type="button" title="Add a new contribution entry">
-          <span>➕ Add Activity</span>
+          <span>➕ Add</span>
         </button>
 
         <!-- Quick Action: Generate Demo Data -->
         <button id="btn-header-generate" class="btn btn-secondary btn-sm" type="button" title="Generate realistic sample contribution dataset">
-          <span>⚡ Generate Demo</span>
+          <span>⚡ Demo</span>
         </button>
 
         <!-- Quick Action: Reset Data -->
@@ -88,32 +157,53 @@
   <main id="main-content">
     <!-- DASHBOARD SECTION -->
     <section id="dashboard" class="dashboard-hero container">
-      <!-- Tagline & Demo Data Banner -->
+      <!-- Tagline, Mode Indicator & Health Bar (Section 15 & 19) -->
       <div class="hero-top-bar">
         <div class="hero-tagline-box">
           <span class="tagline-quote">"Turn your coding activity into measurable developer progress."</span>
         </div>
-        <div class="demo-badge-banner" role="status">
-          <span class="pulse-indicator"></span>
-          <strong>Demo Dataset</strong> &mdash; Local-first browser simulation. Not connected to external GitHub accounts.
+
+        <div class="hero-status-group">
+          <!-- Clear Dashboard Mode Indicator (Section 15) -->
+          <div id="dashboard-mode-badge" class="mode-badge demo-mode" role="status">
+            <span class="mode-dot"></span>
+            <strong id="mode-title-text">Demo Data</strong> &mdash; <span id="mode-desc-text">Local-first browser simulation.</span>
+          </div>
+
+          <!-- API Health Indicator (Section 19) -->
+          <div id="api-health-badge" class="health-badge">
+            <span class="health-dot"></span>
+            <span id="api-health-label">API: Connected</span>
+          </div>
         </div>
       </div>
 
-      <!-- PROFILE SUMMARY CARD -->
+      <!-- PROFILE SUMMARY CARD (Section 6 & 11) -->
       <div class="profile-card">
         <div class="profile-left">
-          <div class="profile-avatar" aria-hidden="true">
-            <span class="avatar-initials">SS</span>
+          <div class="profile-avatar-wrapper" aria-hidden="true">
+            <img id="prof-avatar-img" class="profile-avatar-img" src="" alt="Profile Avatar" style="display: none;">
+            <div id="prof-avatar-fallback" class="profile-avatar">
+              <span class="avatar-initials" id="prof-avatar-initials">SS</span>
+            </div>
           </div>
           <div class="profile-meta">
             <div class="profile-name-row">
-              <h1 class="profile-name">Soman Singhal</h1>
-              <span class="profile-status-badge">
-                <span class="badge-dot"></span> Demo Dataset
+              <h1 class="profile-name" id="prof-user-name">Soman Singhal</h1>
+              <span class="profile-status-badge" id="prof-status-pill">
+                <span class="badge-dot" id="prof-badge-dot"></span> <span id="prof-status-label">Demo Dataset</span>
               </span>
             </div>
-            <p class="profile-role">Developer Analytics Dashboard &bull; Full-Stack Contributor</p>
-            <p class="profile-bio">Visualizing commits, pull requests, issues, and code reviews across demo repositories.</p>
+            <p class="profile-role" id="prof-user-role">Developer Analytics Dashboard &bull; Full-Stack Contributor</p>
+            <p class="profile-bio" id="prof-user-bio">Visualizing commits, pull requests, issues, and code reviews across repositories.</p>
+            
+            <!-- Real GitHub Stats Meta Row (Visible when connected) -->
+            <div class="profile-github-stats" id="prof-github-meta" style="display: none;">
+              <span id="prof-gh-repos">0 Public Repos</span> &bull; 
+              <span id="prof-gh-followers">0 Followers</span> &bull; 
+              <span id="prof-gh-following">0 Following</span>
+              <a id="prof-github-link" href="https://github.com/somansinghal" target="_blank" rel="noopener noreferrer" class="profile-gh-link">View GitHub Profile ↗</a>
+            </div>
           </div>
         </div>
 
@@ -141,7 +231,7 @@
         </div>
       </div>
 
-      <!-- 8 DYNAMIC METRICS / STATISTICS CARDS -->
+      <!-- 8 DYNAMIC METRICS / STATISTICS CARDS (Section 13) -->
       <div class="metrics-grid" aria-label="Calculated Developer Statistics">
         <div class="metric-card">
           <div class="metric-icon-wrap green-grad">💚</div>
@@ -211,7 +301,7 @@
           <div class="metric-content">
             <span class="metric-title">Tracked Repos</span>
             <span class="metric-value" id="stat-active-repos">5</span>
-            <span class="metric-sub">Demo repositories active</span>
+            <span class="metric-sub" id="stat-repos-sub">Active projects</span>
           </div>
         </div>
       </div>
@@ -226,7 +316,7 @@
             <h2 class="panel-heading">
               <span>🟩</span> Contribution Heatmap
             </h2>
-            <p class="panel-subtext">
+            <p class="panel-subtext" id="heatmap-subtext">
               GitHub-style 365-day calendar. Hover any cell for breakdown; click to inspect, edit, or delete activity.
             </p>
           </div>
@@ -279,7 +369,6 @@
         <!-- HEATMAP HORIZONTALLY SCROLLABLE CONTAINER -->
         <div class="heatmap-scroll-wrapper" id="heatmap-scroll-area">
           <div class="heatmap-calendar" id="heatmap-calendar" role="region" aria-label="Contribution Activity Calendar">
-            <!-- Generated dynamically by script.js -->
             <div class="loading-state">Initializing contribution calendar...</div>
           </div>
         </div>
@@ -287,7 +376,7 @@
         <!-- Heatmap Footer: Legend & Note -->
         <div class="heatmap-footer-row">
           <div class="heatmap-note">
-            <span class="info-tag">DEMO DATA</span>
+            <span class="info-tag" id="heatmap-mode-tag">DEMO DATA</span>
             <span>Levels: 0 (none), 1 (1–2), 2 (3–5), 3 (6–9), 4 (10+). Keyboard accessible: Tab &amp; Enter to inspect.</span>
           </div>
 
@@ -320,9 +409,7 @@
             <span class="pill-tag">Day of Week</span>
           </div>
 
-          <div class="weekly-bar-container" id="weekly-analytics-chart" role="region" aria-label="Weekly Activity by Day of Week">
-            <!-- Populated dynamically by script.js -->
-          </div>
+          <div class="weekly-bar-container" id="weekly-analytics-chart" role="region" aria-label="Weekly Activity by Day of Week"></div>
 
           <div class="chart-footer-stat">
             <span id="weekly-peak-info">Peak: <strong>Wednesday</strong></span>
@@ -330,7 +417,7 @@
           </div>
         </div>
 
-        <!-- 2. WEEKLY COMMIT GOAL TRACKER -->
+        <!-- 2. WEEKLY COMMIT GOAL TRACKER (Section 24) -->
         <div class="card-panel">
           <div class="panel-header-clean">
             <div>
@@ -395,9 +482,7 @@
             <span class="pill-tag">12 Months</span>
           </div>
 
-          <div class="monthly-chart-container" id="monthly-analytics-chart" role="region" aria-label="Monthly Contribution Chart">
-            <!-- Populated dynamically by script.js -->
-          </div>
+          <div class="monthly-chart-container" id="monthly-analytics-chart" role="region" aria-label="Monthly Contribution Chart"></div>
 
           <div class="chart-footer-stat">
             <span id="monthly-best-info">Most Active Month: <strong>--</strong></span>
@@ -417,9 +502,7 @@
             <span class="pill-tag">Dynamic Vector</span>
           </div>
 
-          <div class="trend-chart-wrapper" id="trend-chart-container" role="region" aria-label="Contribution Trend Graph">
-            <!-- SVG rendered dynamically by script.js -->
-          </div>
+          <div class="trend-chart-wrapper" id="trend-chart-container" role="region" aria-label="Contribution Trend Graph"></div>
 
           <div class="chart-footer-stat">
             <span>Peak Activity Period: <strong id="trend-peak-period">--</strong></span>
@@ -447,9 +530,7 @@
             </div>
           </div>
 
-          <div class="repo-analytics-list" id="repo-analytics-list" role="region" aria-label="Repository Activity List">
-            <!-- Populated dynamically by script.js -->
-          </div>
+          <div class="repo-analytics-list" id="repo-analytics-list" role="region" aria-label="Repository Activity List"></div>
 
           <div class="repo-note-bar">
             <span>ℹ️ Click any repository to filter the entire heatmap and recent activity.</span>
@@ -468,9 +549,7 @@
             <span class="pill-tag" id="activity-stream-count">Latest Events</span>
           </div>
 
-          <div class="recent-feed-container" id="recent-activity-feed" role="feed" aria-label="Recent Contribution Stream">
-            <!-- Populated dynamically by script.js -->
-          </div>
+          <div class="recent-feed-container" id="recent-activity-feed" role="feed" aria-label="Recent Contribution Stream"></div>
         </div>
       </div>
     </section>
@@ -488,9 +567,7 @@
           <span class="pill-tag" id="achievements-tally-badge">0 / 10 Unlocked</span>
         </div>
 
-        <div class="achievements-grid" id="achievements-grid">
-          <!-- 10 achievements rendered dynamically by script.js -->
-        </div>
+        <div class="achievements-grid" id="achievements-grid"></div>
       </div>
     </section>
 
@@ -502,7 +579,7 @@
             <h2 class="panel-heading">
               <span>⚙️</span> Settings &amp; Data Management
             </h2>
-            <p class="panel-subtext">Manage dashboard preferences, themes, dataset generation, and local persistence.</p>
+            <p class="panel-subtext">Manage dashboard preferences, themes, dataset import/export, and local persistence.</p>
           </div>
         </div>
 
@@ -530,6 +607,22 @@
             </div>
             <div class="setting-action">
               <input type="number" id="settings-goal-input" class="form-control" style="width: 100px;" min="5" max="200" step="5" value="35">
+            </div>
+          </div>
+
+          <!-- Data Export / Import (Sections 37 & 38) -->
+          <div class="setting-item-box">
+            <div class="setting-info">
+              <h4 class="setting-title">Data Backup &amp; Migration</h4>
+              <p class="setting-desc">Export your application analytics or import custom JSON activity datasets.</p>
+            </div>
+            <div class="setting-action-group">
+              <button type="button" id="btn-export-data" class="btn btn-secondary btn-sm">
+                <span>⬇️ Export JSON</span>
+              </button>
+              <button type="button" id="btn-import-data" class="btn btn-secondary btn-sm">
+                <span>⬆️ Import JSON</span>
+              </button>
             </div>
           </div>
 
@@ -563,19 +656,21 @@
     </section>
   </main>
 
-  <!-- APPLICATION FOOTER -->
+  <!-- APPLICATION FOOTER (Sections 23 & 51) -->
   <footer class="app-footer">
     <div class="container footer-container">
       <div class="footer-top-row">
         <div class="footer-brand-info">
           <div class="footer-logo">
-            <span class="footer-square">🟩</span>
+            <span class="footer-square">
+              <img src="assets/logo-mark.svg" alt="" width="26" height="26" class="footer-logo-img">
+            </span>
             <span class="footer-title">GitHub Green Squares</span>
           </div>
           <p class="footer-tagline">"Turn your coding activity into measurable developer progress."</p>
           <p class="footer-desc">
-            Independent developer contribution analytics dashboard built with pure HTML5, CSS3, and modern Vanilla JavaScript.
-            Designed for local-first developer productivity and streak tracking.
+            Developer contribution analytics dashboard built with pure HTML5, CSS3, and modern Vanilla JavaScript.
+            Features authentic GitHub integration, streak tracking, repository metrics, and developer consistency scoring.
           </p>
         </div>
 
@@ -590,12 +685,30 @@
           </ul>
         </div>
 
+        <!-- REAL SOCIAL LINKS ONLY (Section 23) -->
         <div class="footer-nav-group">
-          <h5 class="footer-group-title">Documentation &amp; Source</h5>
-          <ul class="footer-links">
-            <li><a href="https://github.com/somansinghal/Green_squares" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a></li>
-            <li><a href="https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-settings-on-your-profile/viewing-contributions-on-your-profile" target="_blank" rel="noopener noreferrer">About GitHub Contributions ↗</a></li>
-            <li><a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub.com ↗</a></li>
+          <h5 class="footer-group-title">Connect &amp; Social</h5>
+          <ul class="footer-links social-links-list">
+            <li>
+              <a href="https://github.com/somansinghal" target="_blank" rel="noopener noreferrer" aria-label="Soman Singhal GitHub Profile">
+                <span class="social-icon">🐙</span> GitHub: @somansinghal ↗
+              </a>
+            </li>
+            <li>
+              <a href="https://instagram.com/_somansinghal" target="_blank" rel="noopener noreferrer" aria-label="Soman Singhal Instagram Profile">
+                <span class="social-icon">📷</span> Instagram: @_somansinghal ↗
+              </a>
+            </li>
+            <li>
+              <a href="https://somansinghal.vercel.app/" target="_blank" rel="noopener noreferrer" aria-label="Soman Singhal Personal Portfolio">
+                <span class="social-icon">🌐</span> Portfolio Website ↗
+              </a>
+            </li>
+            <li>
+              <a href="https://githubgreensquare.vercel.app/" target="_blank" rel="noopener noreferrer" aria-label="GitHub Green Squares Live Website">
+                <span class="social-icon">🟩</span> GitHub Green Squares ↗
+              </a>
+            </li>
           </ul>
         </div>
       </div>
@@ -605,7 +718,7 @@
           &copy; 2026 <strong>GitHub Green Squares</strong> &bull; Crafted by Soman Singhal.
         </div>
         <div class="footer-disclaimer">
-          V1 is a local-first application using simulated demo activity. Not connected to live GitHub credentials.
+          Independent open-source developer tool. Not affiliated with, endorsed, or sponsored by GitHub, Inc.
         </div>
       </div>
     </div>
@@ -940,6 +1053,43 @@
       </div>
     </div>
   </div>
+
+  <!-- 8. DATA IMPORT MODAL (Section 38) -->
+  <div id="modal-import-data" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="import-modal-title">
+    <div class="modal-window modal-sm">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-title-icon">⬆️</span>
+          <h3 id="import-modal-title" class="modal-title">Import JSON Dataset</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-close-import-modal" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-desc-text">
+          Select a previously exported <code>.json</code> file to restore your customized contribution dataset.
+        </p>
+
+        <div class="form-group">
+          <label for="import-file-input" class="form-label">Choose JSON File</label>
+          <input type="file" id="import-file-input" class="form-control" accept=".json,application/json">
+          <span class="field-error" id="err-import-file">Please select a valid JSON backup file.</span>
+        </div>
+
+        <div class="import-preview-box" id="import-preview-box" style="display: none;">
+          <span id="import-file-summary"></span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-import">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-import">Import Dataset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden download link for JSON export -->
+  <a id="hidden-export-link" style="display: none;" download="github-green-squares-backup.json"></a>
 
   <!-- Application Logic -->
   <script src="script.js"></script>
