@@ -3,163 +3,237 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub Green Squares Ka Junoon | Contribution Activity Dashboard</title>
-  <meta name="description" content="GitHub-inspired contribution activity dashboard for visualizing commits, coding streaks, repository activity, and developer consistency.">
+  <title>GitHub Green Squares — Developer Contribution Analytics</title>
+  <meta name="description" content="Turn your coding activity into measurable developer progress. GitHub-inspired developer contribution analytics dashboard with heatmap, streak tracking, repository metrics, and consistency scoring.">
+  <meta name="theme-color" content="#0d1117">
+  
+  <!-- Open Graph Metadata -->
+  <meta property="og:title" content="GitHub Green Squares — Developer Contribution Analytics">
+  <meta property="og:description" content="Turn your coding activity into measurable developer progress. Track commits, PRs, issues, reviews, and streaks with zero dependencies.">
+  <meta property="og:type" content="website">
+  
   <link rel="stylesheet" href="style.css">
-  <!-- Modern Google Fonts -->
+  
+  <!-- Typography from Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Skip link for keyboard accessibility -->
-  <a href="#main-content" class="skip-to-content">Skip to content</a>
+  <!-- Accessibility Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
 
-  <!-- Floating Toast Notifications Container -->
+  <!-- Toast Notification System Container -->
   <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Global Tooltip for Heatmap Cells -->
-  <div id="heatmap-tooltip" class="heatmap-tooltip" role="tooltip" aria-hidden="true"></div>
+  <!-- Global Tooltip for Heatmap Cells and Charts -->
+  <div id="app-tooltip" class="app-tooltip" role="tooltip" aria-hidden="true"></div>
 
-  <!-- STICKY TOP NAVIGATION -->
+  <!-- APPLICATION HEADER & NAVIGATION -->
   <header class="app-header">
-    <div class="header-inner container">
-      <div class="logo-area">
-        <a href="#dashboard" class="brand-link" aria-label="GitHub Green Squares Ka Junoon Home">
-          <span class="brand-icon" aria-hidden="true">🟩</span>
-          <div class="brand-text">
-            <span class="brand-name">GitHub Green Squares Ka Junoon</span>
-            <span class="brand-tagline">Commit karo. Green squares banao. Streak maintain karo. 🔥</span>
+    <div class="header-container container">
+      <div class="header-brand-wrap">
+        <a href="#dashboard" class="brand-link" aria-label="GitHub Green Squares Home">
+          <div class="brand-square" aria-hidden="true">🟩</div>
+          <div class="brand-titles">
+            <span class="brand-title">GitHub Green Squares</span>
+            <span class="brand-subtitle">Developer Contribution Analytics</span>
           </div>
         </a>
       </div>
 
-      <nav class="main-nav" aria-label="Main Navigation">
-        <ul class="nav-links">
-          <li><a href="#dashboard" class="nav-link active">Dashboard</a></li>
-          <li><a href="#heatmap-section" class="nav-link">Heatmap</a></li>
-          <li><a href="#streak-section" class="nav-link">Streak</a></li>
-          <li><a href="#repositories-section" class="nav-link">Repositories</a></li>
-          <li><a href="#guide-section" class="nav-link">Guide</a></li>
+      <nav class="header-nav" aria-label="Main Navigation">
+        <ul class="nav-list">
+          <li><a href="#dashboard" class="nav-item active">Dashboard</a></li>
+          <li><a href="#activity-section" class="nav-item">Activity</a></li>
+          <li><a href="#analytics-section" class="nav-item">Analytics</a></li>
+          <li><a href="#achievements-section" class="nav-item">Achievements</a></li>
+          <li><a href="#settings-section" class="nav-item">Settings</a></li>
         </ul>
       </nav>
 
       <div class="header-actions">
-        <span class="demo-pill-badge" title="This application uses client-side demo data">
-          <span class="pulse-dot"></span> Demo Mode
-        </span>
-        <button id="sound-toggle" class="btn-theme-toggle" type="button" aria-label="Toggle sound effects" title="Mechanical keyboard & contribution sound effects">
-          <span class="sound-icon" aria-hidden="true">🔊</span>
-          <span class="sound-label">Sound</span>
+        <!-- Theme Switcher Dropdown -->
+        <div class="theme-dropdown-wrap">
+          <button id="theme-btn" class="btn btn-ghost btn-sm" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Change theme">
+            <span id="theme-icon" aria-hidden="true">🌙</span>
+            <span id="theme-label">Dark</span>
+          </button>
+          <div id="theme-menu" class="dropdown-menu" role="menu">
+            <button type="button" class="dropdown-item" data-theme-value="dark" role="menuitem">🌙 Dark</button>
+            <button type="button" class="dropdown-item" data-theme-value="light" role="menuitem">☀️ Light</button>
+            <button type="button" class="dropdown-item" data-theme-value="system" role="menuitem">💻 System</button>
+          </div>
+        </div>
+
+        <!-- Quick Action: Add Activity -->
+        <button id="btn-header-add" class="btn btn-primary btn-sm" type="button" title="Add a new contribution entry">
+          <span>➕ Add Activity</span>
         </button>
-        <button id="theme-toggle" class="btn-theme-toggle" type="button" aria-label="Toggle theme">
-          <span class="theme-icon" aria-hidden="true">🌙</span>
-          <span class="theme-label">Dark</span>
+
+        <!-- Quick Action: Generate Demo Data -->
+        <button id="btn-header-generate" class="btn btn-secondary btn-sm" type="button" title="Generate realistic sample contribution dataset">
+          <span>⚡ Generate Demo</span>
+        </button>
+
+        <!-- Quick Action: Reset Data -->
+        <button id="btn-header-reset" class="btn btn-outline-danger btn-sm" type="button" title="Reset all contribution data">
+          <span>🔄 Reset</span>
         </button>
       </div>
     </div>
   </header>
 
+  <!-- MAIN APPLICATION CONTENT -->
   <main id="main-content">
-    <!-- HERO / DASHBOARD SECTION -->
+    <!-- DASHBOARD SECTION -->
     <section id="dashboard" class="dashboard-hero container">
-      <!-- Demo Disclaimer Banner -->
-      <div class="demo-alert-banner" role="status">
-        <div class="alert-icon">ℹ️</div>
-        <div class="alert-content">
-          <strong>DEMO / SAMPLE ACTIVITY:</strong> This dashboard visualizes realistic simulated contribution data stored locally in your browser. Not connected to GitHub accounts or credentials.
+      <!-- Tagline & Demo Data Banner -->
+      <div class="hero-top-bar">
+        <div class="hero-tagline-box">
+          <span class="tagline-quote">"Turn your coding activity into measurable developer progress."</span>
+        </div>
+        <div class="demo-badge-banner" role="status">
+          <span class="pulse-indicator"></span>
+          <strong>Demo Dataset</strong> &mdash; Local-first browser simulation. Not connected to external GitHub accounts.
         </div>
       </div>
 
-      <div class="hero-header-row">
-        <div class="hero-titles">
-          <div class="hero-pretitle">DEVELOPER PRODUCTIVITY &amp; STREAK TRACKER</div>
-          <h1 class="hero-title">GitHub Contribution Dashboard</h1>
-          <p class="hero-subtitle">Your coding activity, visualized one green square at a time.</p>
+      <!-- PROFILE SUMMARY CARD -->
+      <div class="profile-card">
+        <div class="profile-left">
+          <div class="profile-avatar" aria-hidden="true">
+            <span class="avatar-initials">SS</span>
+          </div>
+          <div class="profile-meta">
+            <div class="profile-name-row">
+              <h1 class="profile-name">Soman Singhal</h1>
+              <span class="profile-status-badge">
+                <span class="badge-dot"></span> Demo Dataset
+              </span>
+            </div>
+            <p class="profile-role">Developer Analytics Dashboard &bull; Full-Stack Contributor</p>
+            <p class="profile-bio">Visualizing commits, pull requests, issues, and code reviews across demo repositories.</p>
+          </div>
         </div>
 
-        <div class="hero-motivation-card">
-          <div class="motivation-header">
-            <span class="fire-icon">🔥</span>
-            <span class="motivation-label">Daily Dose of Junoon</span>
+        <div class="profile-stats-grid">
+          <div class="profile-stat-box">
+            <span class="profile-stat-label">Total Contributions</span>
+            <span class="profile-stat-val" id="prof-total-contributions">0</span>
+            <span class="profile-stat-sub" id="prof-year-label">All Year Activity</span>
           </div>
-          <blockquote id="motivational-quote" class="motivational-quote">
-            "One more commit bro. 🔥"
-          </blockquote>
-          <button id="btn-motivate" class="btn btn-secondary btn-sm" type="button">
-            <span>Motivate Me 🔥</span>
-          </button>
+          <div class="profile-stat-box highlight-streak">
+            <span class="profile-stat-label">Current Streak</span>
+            <span class="profile-stat-val" id="prof-current-streak">0 days</span>
+            <span class="profile-stat-sub">Active coding days</span>
+          </div>
+          <div class="profile-stat-box">
+            <span class="profile-stat-label">Longest Streak</span>
+            <span class="profile-stat-val" id="prof-longest-streak">0 days</span>
+            <span class="profile-stat-sub">Personal record</span>
+          </div>
+          <div class="profile-stat-box">
+            <span class="profile-stat-label">Active Days</span>
+            <span class="profile-stat-val" id="prof-active-days">0</span>
+            <span class="profile-stat-sub" id="prof-active-pct">0% of year</span>
+          </div>
         </div>
       </div>
 
-      <!-- 4 DYNAMIC STATISTICS CARDS -->
-      <div class="stats-grid" aria-label="Dashboard Statistics">
-        <div class="stat-card" id="card-current-streak">
-          <div class="stat-icon-wrapper fire-gradient">
-            <span class="stat-icon" aria-hidden="true">🔥</span>
-          </div>
-          <div class="stat-details">
-            <div class="stat-label">Current Streak</div>
-            <div class="stat-value" id="stat-current-streak">0 days</div>
-            <div class="stat-subtext" id="stat-current-streak-note">Building momentum</div>
+      <!-- 8 DYNAMIC METRICS / STATISTICS CARDS -->
+      <div class="metrics-grid" aria-label="Calculated Developer Statistics">
+        <div class="metric-card">
+          <div class="metric-icon-wrap green-grad">💚</div>
+          <div class="metric-content">
+            <span class="metric-title">Avg / Active Day</span>
+            <span class="metric-value" id="stat-avg-contributions">0.0</span>
+            <span class="metric-sub">Contributions on active days</span>
           </div>
         </div>
 
-        <div class="stat-card" id="card-longest-streak">
-          <div class="stat-icon-wrapper trophy-gradient">
-            <span class="stat-icon" aria-hidden="true">🏆</span>
-          </div>
-          <div class="stat-details">
-            <div class="stat-label">Longest Streak</div>
-            <div class="stat-value" id="stat-longest-streak">0 days</div>
-            <div class="stat-subtext">Personal all-time record</div>
+        <div class="metric-card">
+          <div class="metric-icon-wrap fire-grad">🔥</div>
+          <div class="metric-content">
+            <span class="metric-title">Current Streak</span>
+            <span class="metric-value" id="stat-current-streak">0 days</span>
+            <span class="metric-sub" id="stat-streak-msg">Building momentum</span>
           </div>
         </div>
 
-        <div class="stat-card" id="card-total-contributions">
-          <div class="stat-icon-wrapper green-gradient">
-            <span class="stat-icon" aria-hidden="true">💚</span>
-          </div>
-          <div class="stat-details">
-            <div class="stat-label">Total Contributions</div>
-            <div class="stat-value" id="stat-total-contributions">0</div>
-            <div class="stat-subtext" id="stat-year-indicator">In selected year</div>
+        <div class="metric-card">
+          <div class="metric-icon-wrap trophy-grad">🏆</div>
+          <div class="metric-content">
+            <span class="metric-title">Longest Streak</span>
+            <span class="metric-value" id="stat-longest-streak">0 days</span>
+            <span class="metric-sub">All-time maximum sequence</span>
           </div>
         </div>
 
-        <div class="stat-card" id="card-active-repos">
-          <div class="stat-icon-wrapper box-gradient">
-            <span class="stat-icon" aria-hidden="true">📦</span>
+        <div class="metric-card">
+          <div class="metric-icon-wrap purple-grad">📅</div>
+          <div class="metric-content">
+            <span class="metric-title">Best Month</span>
+            <span class="metric-value" id="stat-best-month">--</span>
+            <span class="metric-sub" id="stat-best-month-vol">0 contributions</span>
           </div>
-          <div class="stat-details">
-            <div class="stat-label">Active Repositories</div>
-            <div class="stat-value" id="stat-active-repos">5</div>
-            <div class="stat-subtext">Demo projects tracked</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-wrap blue-grad">⭐</div>
+          <div class="metric-content">
+            <span class="metric-title">Best Day Record</span>
+            <span class="metric-value" id="stat-best-day">0 commits</span>
+            <span class="metric-sub" id="stat-best-day-date">None yet</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-wrap orange-grad">⚡</div>
+          <div class="metric-content">
+            <span class="metric-title">Most Productive Day</span>
+            <span class="metric-value" id="stat-best-weekday">--</span>
+            <span class="metric-sub" id="stat-best-weekday-vol">Highest weekly frequency</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-wrap teal-grad">🎯</div>
+          <div class="metric-content">
+            <span class="metric-title">Consistency Score</span>
+            <span class="metric-value" id="stat-consistency-score">0 / 100</span>
+            <span class="metric-sub" id="stat-consistency-desc">Calculating consistency...</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-wrap box-grad">📦</div>
+          <div class="metric-content">
+            <span class="metric-title">Tracked Repos</span>
+            <span class="metric-value" id="stat-active-repos">5</span>
+            <span class="metric-sub">Demo repositories active</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- MAIN CONTRIBUTION HEATMAP SECTION -->
-    <section id="heatmap-section" class="heatmap-section container">
-      <div class="section-card">
+    <!-- CONTRIBUTION HEATMAP SECTION (PRIMARY FEATURE) -->
+    <section id="activity-section" class="heatmap-section container">
+      <div class="card-panel">
         <!-- Heatmap Controls Toolbar -->
-        <div class="heatmap-toolbar">
-          <div class="toolbar-left">
-            <div class="toolbar-title-group">
-              <h2 class="section-heading">
-                <span class="heading-icon">🟩</span> Contribution Heatmap
-              </h2>
-              <span class="badge-tag" id="heatmap-range-badge">1 Year Sample Calendar</span>
-            </div>
-            <p class="toolbar-description">
-              Inspect daily commits, hover for exact count, click any square to view details.
+        <div class="heatmap-header-toolbar">
+          <div class="toolbar-title-group">
+            <h2 class="panel-heading">
+              <span>🟩</span> Contribution Heatmap
+            </h2>
+            <p class="panel-subtext">
+              GitHub-style 365-day calendar. Hover any cell for breakdown; click to inspect, edit, or delete activity.
             </p>
           </div>
 
-          <div class="toolbar-right">
+          <div class="toolbar-controls-group">
             <!-- Year Selector -->
-            <div class="control-group">
+            <div class="control-item">
               <label for="year-select" class="control-label">Year:</label>
               <select id="year-select" class="form-select" aria-label="Select contribution year">
                 <option value="2026">2026</option>
@@ -168,554 +242,320 @@
               </select>
             </div>
 
-            <!-- Heatmap Theme Palette Selector -->
-            <div class="control-group">
-              <label for="palette-select" class="control-label">Palette:</label>
-              <select id="palette-select" class="form-select" aria-label="Select green squares color palette">
-                <option value="emerald">🟩 GitHub Emerald</option>
-                <option value="cyber">🟦 Ocean Cyber</option>
-                <option value="vaporwave">🟪 Vaporwave</option>
-                <option value="halloween">🎃 Halloween</option>
-                <option value="ice">❄️ Winter Ice</option>
+            <!-- Activity Type Filter -->
+            <div class="control-item">
+              <label for="type-filter-select" class="control-label">Filter Type:</label>
+              <select id="type-filter-select" class="form-select" aria-label="Filter heatmap by activity type">
+                <option value="all">All Contributions</option>
+                <option value="commits">Commits Only</option>
+                <option value="prs">Pull Requests</option>
+                <option value="issues">Issues</option>
+                <option value="reviews">Code Reviews</option>
               </select>
             </div>
 
-            <!-- Heatmap Intensity Filters -->
-            <div class="control-group">
-              <label for="filter-select" class="control-label">Filter:</label>
-              <select id="filter-select" class="form-select" aria-label="Filter heatmap activity intensity">
-                <option value="all">All Activity</option>
-                <option value="level-1">Low Activity (1-3)</option>
-                <option value="level-2">Medium Activity (4-6)</option>
-                <option value="level-3">High Activity (7-9)</option>
-                <option value="level-4">Very High (10+)</option>
-              </select>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="action-buttons-group">
-              <button id="btn-generate-activity" class="btn btn-primary btn-sm" type="button" title="Generate fresh sample contribution dataset">
-                <span>⚡ Generate Activity</span>
+            <!-- Primary Actions -->
+            <div class="toolbar-actions">
+              <button id="btn-add-activity-modal" class="btn btn-primary btn-sm" type="button">
+                <span>➕ Add Activity</span>
               </button>
-              <button id="btn-live-stream" class="btn btn-secondary btn-sm" type="button" title="Simulate live incoming git push stream">
-                <span>▶️ Live Stream</span>
-              </button>
-              <button id="btn-reset-data" class="btn btn-outline-danger btn-sm" type="button" title="Reset to initial sample data">
-                <span>🔄 Reset Demo Data</span>
+              <button id="btn-open-gen-modal" class="btn btn-secondary btn-sm" type="button">
+                <span>⚡ Generate Demo</span>
               </button>
             </div>
-          </div>
-        </div>
-
-        <!-- Secondary Toolbar: Painter Mode, Preset Art, and Quick Filters -->
-        <div class="custom-tools-bar">
-          <!-- Preset Art Dropdown -->
-          <div class="control-group">
-            <label for="preset-art-select" class="control-label">🎨 Preset Art:</label>
-            <select id="preset-art-select" class="form-select form-select-sm" aria-label="Load preset contribution art pattern">
-              <option value="">-- Choose Art Pattern --</option>
-              <option value="git">Text Art: "GIT"</option>
-              <option value="heart">Pixel Art: Heart ❤️</option>
-              <option value="wave">Sinusoidal Wave 🌊</option>
-              <option value="solid">Max Wall (100% Green) 🔥</option>
-              <option value="checker">Checkerboard Grid 🏁</option>
-            </select>
-          </div>
-
-          <!-- Interactive Painter Mode Toggle -->
-          <div class="painter-controls" id="painter-controls">
-            <button type="button" id="btn-toggle-paint" class="btn btn-secondary btn-sm" title="Click or drag over squares to draw custom contributions">
-              <span id="paint-icon">🖌️</span> <span id="paint-label">Square Painter: OFF</span>
-            </button>
-            <div class="brush-selector" id="brush-selector" style="display: none;">
-              <span class="brush-label">Brush:</span>
-              <button type="button" class="brush-btn" data-brush="0" title="Erase to 0">0</button>
-              <button type="button" class="brush-btn" data-brush="1" title="Level 1 (Low)">1</button>
-              <button type="button" class="brush-btn" data-brush="2" title="Level 2 (Med)">2</button>
-              <button type="button" class="brush-btn" data-brush="3" title="Level 3 (High)">3</button>
-              <button type="button" class="brush-btn active" data-brush="4" title="Level 4 (Max)">4</button>
-            </div>
-          </div>
-
-          <!-- Export Summary Action -->
-          <div class="export-controls">
-            <button type="button" id="btn-export-summary" class="btn btn-secondary btn-sm" title="Export markdown summary of contribution streak">
-              <span>📋 Export Summary</span>
-            </button>
           </div>
         </div>
 
         <!-- Filter Pill Chips -->
-        <div class="filter-chips-row" role="group" aria-label="Filter presets">
-          <span class="chips-label">Quick Filter:</span>
-          <button type="button" class="chip active" data-filter="all">All</button>
-          <button type="button" class="chip" data-filter="level-1">Low (1-3)</button>
-          <button type="button" class="chip" data-filter="level-2">Medium (4-6)</button>
-          <button type="button" class="chip" data-filter="level-3">High (7-9)</button>
-          <button type="button" class="chip" data-filter="level-4">Very High (10+)</button>
+        <div class="filter-pills-bar" role="group" aria-label="Quick Activity Type Filters">
+          <span class="filter-pills-label">View:</span>
+          <button type="button" class="filter-pill active" data-type="all">All Activity</button>
+          <button type="button" class="filter-pill" data-type="commits">Commits 💻</button>
+          <button type="button" class="filter-pill" data-type="prs">Pull Requests 🔀</button>
+          <button type="button" class="filter-pill" data-type="issues">Issues ⚠️</button>
+          <button type="button" class="filter-pill" data-type="reviews">Code Reviews 👁️</button>
         </div>
 
-        <!-- HEATMAP WRAPPER WITH HORIZONTAL SCROLL -->
-        <div class="heatmap-scroll-container" id="heatmap-scroll-area">
-          <div class="heatmap-graph" id="heatmap-graph" role="region" aria-label="Contribution Calendar Graph">
-            <!-- Rendered dynamically by script.js -->
-            <div class="heatmap-loading">Loading contribution calendar...</div>
+        <!-- HEATMAP HORIZONTALLY SCROLLABLE CONTAINER -->
+        <div class="heatmap-scroll-wrapper" id="heatmap-scroll-area">
+          <div class="heatmap-calendar" id="heatmap-calendar" role="region" aria-label="Contribution Activity Calendar">
+            <!-- Generated dynamically by script.js -->
+            <div class="loading-state">Initializing contribution calendar...</div>
           </div>
         </div>
 
-        <!-- Heatmap Footer with Legend & Note -->
-        <div class="heatmap-footer">
-          <div class="heatmap-disclaimer">
-            <span class="info-badge">Sample Data</span>
-            <span>Click any day square to inspect commits or log contributions.</span>
+        <!-- Heatmap Footer: Legend & Note -->
+        <div class="heatmap-footer-row">
+          <div class="heatmap-note">
+            <span class="info-tag">DEMO DATA</span>
+            <span>Levels: 0 (none), 1 (1–2), 2 (3–5), 3 (6–9), 4 (10+). Keyboard accessible: Tab &amp; Enter to inspect.</span>
           </div>
 
-          <!-- Contribution Level Legend -->
-          <div class="contribution-legend" aria-label="Contribution Intensity Legend">
-            <span class="legend-text">Less</span>
-            <div class="legend-cell level-0" tabindex="0" data-legend="level-0" aria-label="Level 0: No activity (0 commits)"></div>
-            <div class="legend-cell level-1" tabindex="0" data-legend="level-1" aria-label="Level 1: Low activity (1-3 commits)"></div>
-            <div class="legend-cell level-2" tabindex="0" data-legend="level-2" aria-label="Level 2: Medium activity (4-6 commits)"></div>
-            <div class="legend-cell level-3" tabindex="0" data-legend="level-3" aria-label="Level 3: High activity (7-9 commits)"></div>
-            <div class="legend-cell level-4" tabindex="0" data-legend="level-4" aria-label="Level 4: Very high activity (10+ commits)"></div>
-            <span class="legend-text">More</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ACTIVITY SUMMARY SECTION -->
-    <section class="summary-section container" aria-label="Activity Summary">
-      <div class="section-card">
-        <div class="card-header-clean">
-          <h2 class="section-heading-sm">
-            <span>📊</span> Activity Summary
-          </h2>
-          <span class="badge-tag">Calculated Metrics</span>
-        </div>
-
-        <div class="summary-grid">
-          <div class="summary-card">
-            <div class="summary-title">Total Contributions</div>
-            <div class="summary-number" id="sum-total-contributions">0</div>
-            <div class="summary-desc">Commits across all demo repos</div>
-          </div>
-
-          <div class="summary-card">
-            <div class="summary-title">Total Active Days</div>
-            <div class="summary-number" id="sum-active-days">0</div>
-            <div class="summary-desc">Days with at least 1 commit</div>
-          </div>
-
-          <div class="summary-card">
-            <div class="summary-title">Average / Active Day</div>
-            <div class="summary-number" id="sum-avg-contributions">0.0</div>
-            <div class="summary-desc">Commits on productive days</div>
-          </div>
-
-          <div class="summary-card">
-            <div class="summary-title">Best Day Record</div>
-            <div class="summary-number" id="sum-best-day-count">0</div>
-            <div class="summary-desc" id="sum-best-day-date">None yet</div>
-          </div>
-
-          <div class="summary-card">
-            <div class="summary-title">Longest Streak</div>
-            <div class="summary-number" id="sum-longest-streak">0 days</div>
-            <div class="summary-desc">Consecutive coding days</div>
+          <div class="heatmap-legend" aria-label="Contribution Intensity Legend">
+            <span class="legend-cap">Less</span>
+            <div class="legend-box level-0" tabindex="0" data-legend="0" aria-label="0 contributions"></div>
+            <div class="legend-box level-1" tabindex="0" data-legend="1" aria-label="1 to 2 contributions"></div>
+            <div class="legend-box level-2" tabindex="0" data-legend="2" aria-label="3 to 5 contributions"></div>
+            <div class="legend-box level-3" tabindex="0" data-legend="3" aria-label="6 to 9 contributions"></div>
+            <div class="legend-box level-4" tabindex="0" data-legend="4" aria-label="10 or more contributions"></div>
+            <span class="legend-cap">More</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TWO-COLUMN WORKFLOW: STREAK DASHBOARD & WEEKLY COMMIT GOAL -->
-    <section id="streak-section" class="streak-and-goals-section container">
-      <div class="two-col-grid">
-        <!-- STREAK DASHBOARD CARD -->
-        <div class="section-card streak-card">
-          <div class="card-header-clean">
-            <h2 class="section-heading-sm">
-              <span>🔥</span> Streak Mode
-            </h2>
-            <span class="badge-tag" id="streak-status-badge">Active Streak</span>
+    <!-- ANALYTICS SECTION: WEEKLY, MONTHLY, TREND & GOALS -->
+    <section id="analytics-section" class="analytics-section container">
+      <!-- Two Column Layout: Weekly Analytics & Weekly Goal Tracker -->
+      <div class="grid-two-col">
+        <!-- 1. WEEKLY ANALYTICS (Monday -> Sunday) -->
+        <div class="card-panel">
+          <div class="panel-header-clean">
+            <div>
+              <h3 class="panel-heading-sm">
+                <span>📊</span> Weekly Distribution
+              </h3>
+              <p class="panel-subtext">Contributions aggregated across Monday &rarr; Sunday</p>
+            </div>
+            <span class="pill-tag">Day of Week</span>
           </div>
 
-          <div class="streak-hero-display">
-            <div class="streak-big-number" id="streak-big-display">0</div>
-            <div class="streak-big-label">DAY STREAK</div>
-            <div class="streak-flame-animation" aria-hidden="true">🔥</div>
+          <div class="weekly-bar-container" id="weekly-analytics-chart" role="region" aria-label="Weekly Activity by Day of Week">
+            <!-- Populated dynamically by script.js -->
           </div>
 
-          <div class="streak-quote-box">
-            <div class="streak-quote-icon">💬</div>
-            <div id="streak-motivational-msg" class="streak-quote-text">
-              "Bro, today is a good day to start."
-            </div>
-          </div>
-
-          <!-- Streak Calendar: Last 14 Days Visual Trail -->
-          <div class="streak-trail-section">
-            <div class="trail-header">
-              <span class="trail-title">Recent 14-Day Streak Trail</span>
-              <span class="trail-subtitle">Consecutive status</span>
-            </div>
-            <div class="streak-trail-row" id="streak-trail-container">
-              <!-- Dynamically populated 14 day bubbles -->
-            </div>
-          </div>
-
-          <div class="streak-stats-row">
-            <div class="streak-stat-item">
-              <span class="streak-stat-title">Current Streak</span>
-              <span class="streak-stat-value" id="streak-mode-current">0 days</span>
-            </div>
-            <div class="streak-stat-divider"></div>
-            <div class="streak-stat-item">
-              <span class="streak-stat-title">Longest Streak</span>
-              <span class="streak-stat-value" id="streak-mode-longest">0 days</span>
-            </div>
+          <div class="chart-footer-stat">
+            <span id="weekly-peak-info">Peak: <strong>Wednesday</strong></span>
+            <span id="weekly-avg-info">Daily Average: <strong>0 contributions</strong></span>
           </div>
         </div>
 
-        <!-- WEEKLY COMMIT GOAL & CONSISTENCY SCORE CARD -->
-        <div class="section-card goal-card">
-          <div class="card-header-clean">
-            <h2 class="section-heading-sm">
-              <span>🎯</span> Weekly Commit Goal
-            </h2>
-            <span class="badge-tag">Current Week</span>
+        <!-- 2. WEEKLY COMMIT GOAL TRACKER -->
+        <div class="card-panel">
+          <div class="panel-header-clean">
+            <div>
+              <h3 class="panel-heading-sm">
+                <span>🎯</span> Weekly Goal Tracker
+              </h3>
+              <p class="panel-subtext">Track actual contributions against your weekly target</p>
+            </div>
+            <span class="pill-tag">Active Week</span>
           </div>
 
-          <div class="goal-interface">
-            <div class="goal-setter-row">
-              <label for="goal-input" class="goal-label">Weekly Target:</label>
-              <div class="goal-input-stepper">
-                <button type="button" id="btn-goal-minus" class="stepper-btn" aria-label="Decrease weekly goal by 5">-</button>
-                <input type="number" id="goal-input" class="goal-input" min="5" max="100" step="5" value="20" aria-label="Weekly commit target">
-                <button type="button" id="btn-goal-plus" class="stepper-btn" aria-label="Increase weekly goal by 5">+</button>
-                <span class="goal-unit">commits</span>
+          <div class="goal-widget-body">
+            <div class="goal-controls-row">
+              <label for="goal-target-input" class="control-label">Weekly Target:</label>
+              <div class="stepper-input-wrap">
+                <button type="button" id="btn-goal-dec" class="btn-stepper" aria-label="Decrease goal by 5">-</button>
+                <input type="number" id="goal-target-input" class="goal-number-field" min="5" max="150" step="5" value="35" aria-label="Weekly contribution goal">
+                <button type="button" id="btn-goal-inc" class="btn-stepper" aria-label="Increase goal by 5">+</button>
+                <span class="unit-label">contributions</span>
               </div>
             </div>
 
-            <div class="goal-metrics-row">
-              <div class="goal-metric">
-                <span class="metric-dim">Target</span>
-                <span class="metric-bright" id="goal-target-display">20 commits</span>
+            <div class="goal-progress-stats">
+              <div class="goal-stat-item">
+                <span class="stat-dim">Target</span>
+                <span class="stat-bright" id="goal-target-display">35</span>
               </div>
-              <div class="goal-metric">
-                <span class="metric-dim">Current Week</span>
-                <span class="metric-bright" id="goal-current-display">0 commits</span>
+              <div class="goal-stat-item">
+                <span class="stat-dim">Logged This Week</span>
+                <span class="stat-bright" id="goal-current-display">0</span>
               </div>
-              <div class="goal-metric">
-                <span class="metric-dim">Progress</span>
-                <span class="metric-bright" id="goal-percent-display">0%</span>
+              <div class="goal-stat-item">
+                <span class="stat-dim">Completion</span>
+                <span class="stat-bright" id="goal-percent-display">0%</span>
               </div>
             </div>
 
-            <!-- Progress Bar -->
-            <div class="progress-bar-container" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="goal-progress-bar-aria">
-              <div class="progress-bar-fill" id="goal-progress-fill" style="width: 0%;"></div>
+            <!-- Goal Progress Bar -->
+            <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="goal-progress-bar">
+              <div class="progress-indicator" id="goal-progress-fill" style="width: 0%;"></div>
             </div>
 
             <div class="goal-status-box" id="goal-status-box">
-              <span class="goal-status-icon" id="goal-status-icon">⏳</span>
-              <span class="goal-status-text" id="goal-status-text">20 commits to go</span>
+              <span class="goal-icon" id="goal-status-icon">⏳</span>
+              <span class="goal-text" id="goal-status-text">35 contributions to reach weekly goal</span>
             </div>
           </div>
+        </div>
+      </div>
 
-          <!-- DEVELOPER CONSISTENCY SCORE -->
-          <div class="consistency-score-widget">
-            <div class="consistency-header">
-              <div class="consistency-title-wrap">
-                <span class="consistency-icon">⚡</span>
-                <span class="consistency-title">Developer Consistency Score</span>
-              </div>
-              <span class="consistency-badge">App Generated</span>
+      <!-- Two Column Layout: Monthly Analytics & Contribution Trend -->
+      <div class="grid-two-col mt-4">
+        <!-- 3. MONTHLY ANALYTICS (Jan -> Dec) -->
+        <div class="card-panel">
+          <div class="panel-header-clean">
+            <div>
+              <h3 class="panel-heading-sm">
+                <span>🗓️</span> Monthly Analytics
+              </h3>
+              <p class="panel-subtext">Contribution volume for each calendar month</p>
             </div>
+            <span class="pill-tag">12 Months</span>
+          </div>
 
-            <div class="score-display-row">
-              <div class="score-radial-wrap">
-                <div class="score-ring">
-                  <span class="score-number" id="consistency-score-num">0</span>
-                  <span class="score-total">/100</span>
-                </div>
-              </div>
-              <div class="score-details">
-                <div class="score-status" id="consistency-status-text">Calculating consistency...</div>
-                <p class="score-subtext">Calculated from streak longevity, active days ratio, and weekly goal completion.</p>
-              </div>
+          <div class="monthly-chart-container" id="monthly-analytics-chart" role="region" aria-label="Monthly Contribution Chart">
+            <!-- Populated dynamically by script.js -->
+          </div>
+
+          <div class="chart-footer-stat">
+            <span id="monthly-best-info">Most Active Month: <strong>--</strong></span>
+            <span id="monthly-total-info">Year Total: <strong>0 contributions</strong></span>
+          </div>
+        </div>
+
+        <!-- 4. CONTRIBUTION TREND OVER TIME (DYNAMIC SVG) -->
+        <div class="card-panel">
+          <div class="panel-header-clean">
+            <div>
+              <h3 class="panel-heading-sm">
+                <span>📈</span> Contribution Trend
+              </h3>
+              <p class="panel-subtext">Trajectory and momentum over the selected year</p>
             </div>
+            <span class="pill-tag">Dynamic Vector</span>
+          </div>
+
+          <div class="trend-chart-wrapper" id="trend-chart-container" role="region" aria-label="Contribution Trend Graph">
+            <!-- SVG rendered dynamically by script.js -->
+          </div>
+
+          <div class="chart-footer-stat">
+            <span>Peak Activity Period: <strong id="trend-peak-period">--</strong></span>
+            <span>Velocity: <strong id="trend-velocity-label">Calculating...</strong></span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- DATA VISUALIZATION (WEEKLY ACTIVITY BARS) & ADD CONTRIBUTION FORM -->
-    <section class="charts-and-form-section container">
-      <div class="two-col-grid">
-        <!-- WEEKLY ACTIVITY BAR CHART (PURE HTML/CSS/JS) -->
-        <div class="section-card chart-card">
-          <div class="card-header-clean">
+    <!-- REPOSITORY ANALYTICS & RECENT ACTIVITY SECTION -->
+    <section class="repos-and-recent container">
+      <div class="grid-two-col">
+        <!-- REPOSITORY ANALYTICS -->
+        <div class="card-panel">
+          <div class="panel-header-clean">
             <div>
-              <h2 class="section-heading-sm">
-                <span>📈</span> Weekly Activity
-              </h2>
-              <p class="card-sub-description">Commits logged across the last 7 calendar days</p>
+              <h3 class="panel-heading-sm">
+                <span>📦</span> Repository Analytics
+              </h3>
+              <p class="panel-subtext">Contributions broken down by project</p>
             </div>
-            <span class="badge-tag">Last 7 Days</span>
+            <div class="repo-filter-status" id="repo-filter-indicator">
+              <span id="repo-filter-active-text">All Projects</span>
+              <button type="button" id="btn-clear-repo-filter" class="btn-clear-repo" style="display: none;">✕ Clear</button>
+            </div>
           </div>
 
-          <div class="bar-chart-container" id="weekly-bar-chart" role="region" aria-label="7-Day Commit Activity Chart">
-            <!-- Bar columns populated dynamically by script.js -->
+          <div class="repo-analytics-list" id="repo-analytics-list" role="region" aria-label="Repository Activity List">
+            <!-- Populated dynamically by script.js -->
           </div>
 
-          <div class="chart-summary-line">
-            <span id="chart-total-label">Total in last 7 days: <strong>0 commits</strong></span>
-            <span id="chart-peak-label">Peak: <strong>0 commits</strong></span>
+          <div class="repo-note-bar">
+            <span>ℹ️ Click any repository to filter the entire heatmap and recent activity.</span>
           </div>
         </div>
 
-        <!-- ADD CONTRIBUTION FORM -->
-        <div class="section-card form-card">
-          <div class="card-header-clean">
+        <!-- RECENT ACTIVITY FEED -->
+        <div class="card-panel">
+          <div class="panel-header-clean">
             <div>
-              <h2 class="section-heading-sm">
-                <span>➕</span> Add Contribution
-              </h2>
-              <p class="card-sub-description">Simulate adding new commits to test heatmap reactions</p>
-            </div>
-            <span class="badge-tag">Interactive Form</span>
-          </div>
-
-          <form id="add-contribution-form" class="contribution-form" novalidate>
-            <div class="form-row">
-              <div class="form-group flex-1">
-                <label for="contrib-date" class="form-label">Date <span class="required">*</span></label>
-                <input type="date" id="contrib-date" class="form-control" required>
-                <div class="form-hint">Choose any day in the selected year</div>
-              </div>
-
-              <div class="form-group flex-1">
-                <label for="contrib-count" class="form-label">Commits <span class="required">*</span></label>
-                <div class="number-stepper">
-                  <button type="button" class="stepper-sub-btn" id="btn-count-sub">-</button>
-                  <input type="number" id="contrib-count" class="form-control" min="1" max="50" value="5" required>
-                  <button type="button" class="stepper-sub-btn" id="btn-count-add">+</button>
-                </div>
-                <div class="form-hint">Between 1 and 50 commits</div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="contrib-repo" class="form-label">Repository <span class="required">*</span></label>
-              <select id="contrib-repo" class="form-control" required>
-                <option value="Green-Square-Lab">Green-Square-Lab</option>
-                <option value="Commit-Tracker">Commit-Tracker</option>
-                <option value="Dev-Journal">Dev-Journal</option>
-                <option value="Contribution-Visualizer">Contribution-Visualizer</option>
-                <option value="Code-Streak">Code-Streak</option>
-              </select>
-              <div class="form-hint">Choose one of the demo repositories</div>
-            </div>
-
-            <div class="form-group">
-              <label for="contrib-message" class="form-label">Commit Message (Optional)</label>
-              <input type="text" id="contrib-message" class="form-control" placeholder="e.g. refactor: optimize heatmap render engine" maxlength="80">
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary btn-block">
-                <span>🟩 Add Contribution</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- REPOSITORY ACTIVITY & RECENT ACTIVITY TIMELINE -->
-    <section id="repositories-section" class="repos-and-timeline container">
-      <div class="two-col-grid">
-        <!-- REPOSITORY ACTIVITY CARD -->
-        <div class="section-card repo-card">
-          <div class="card-header-clean">
-            <div>
-              <h2 class="section-heading-sm">
-                <span>📦</span> Repository Activity
-              </h2>
-              <p class="card-sub-description">Simulated repositories contributing to your green squares</p>
-            </div>
-            <div class="repo-filter-indicator" id="repo-filter-indicator">
-              <span id="repo-filter-name">All Repos</span>
-              <button type="button" id="btn-clear-repo-filter" class="btn-clear-filter" style="display: none;" title="Show all repositories">✕ Clear</button>
-            </div>
-          </div>
-
-          <div class="repo-list" id="repo-list-container" role="region" aria-label="Demo Repositories List">
-            <!-- Repos rendered dynamically by script.js -->
-          </div>
-
-          <div class="repo-footer-note">
-            <span class="info-icon">ℹ️</span>
-            <span>These are demo repositories for visual simulation. Not linked to external GitHub profiles.</span>
-          </div>
-        </div>
-
-        <!-- RECENT ACTIVITY TIMELINE -->
-        <div class="section-card timeline-card">
-          <div class="card-header-clean">
-            <div>
-              <h2 class="section-heading-sm">
+              <h3 class="panel-heading-sm">
                 <span>🕒</span> Recent Activity
-              </h2>
-              <p class="card-sub-description">Latest recorded contribution events</p>
+              </h3>
+              <p class="panel-subtext">Latest recorded contribution events (sorted by date)</p>
             </div>
-            <span class="badge-tag">Live Stream</span>
+            <span class="pill-tag" id="activity-stream-count">Latest Events</span>
           </div>
 
-          <div class="timeline-container" id="recent-timeline" role="feed" aria-label="Recent Activity Stream">
-            <!-- Timeline items rendered dynamically by script.js -->
+          <div class="recent-feed-container" id="recent-activity-feed" role="feed" aria-label="Recent Contribution Stream">
+            <!-- Populated dynamically by script.js -->
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ACHIEVEMENTS SECTION -->
-    <section class="achievements-section container" aria-label="Developer Achievements">
-      <div class="section-card">
-        <div class="card-header-clean">
+    <!-- ACHIEVEMENTS SECTION (10 SYSTEM ACHIEVEMENTS) -->
+    <section id="achievements-section" class="achievements-section container">
+      <div class="card-panel">
+        <div class="panel-header-clean">
           <div>
-            <h2 class="section-heading-sm">
+            <h2 class="panel-heading">
               <span>🏆</span> Developer Achievements
             </h2>
-            <p class="card-sub-description">Milestones automatically unlocked as your demo activity grows</p>
+            <p class="panel-subtext">Milestones automatically calculated and unlocked from your actual contribution dataset.</p>
           </div>
-          <span class="badge-tag" id="achievements-unlocked-badge">0 / 7 Unlocked</span>
+          <span class="pill-tag" id="achievements-tally-badge">0 / 10 Unlocked</span>
         </div>
 
         <div class="achievements-grid" id="achievements-grid">
-          <!-- Rendered dynamically by script.js -->
+          <!-- 10 achievements rendered dynamically by script.js -->
         </div>
       </div>
     </section>
 
-    <!-- GITHUB CONNECTION AREA (COMING SOON) -->
-    <section class="github-connect-section container">
-      <div class="section-card connect-card">
-        <div class="connect-icon-side">
-          <div class="github-svg-avatar" aria-hidden="true">
-            <svg height="48" width="48" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9 1.15 1.48.51.72 1.62.47 2.21.36 0 .68.01 1.25.01 1.44 0 .21-.15.46-.55.38A8.013 8.013 0 0 1 0 8c0-4.42 3.58-8 8-8z"></path>
-            </svg>
-          </div>
-        </div>
-
-        <div class="connect-info-side">
-          <div class="connect-tag">FUTURE CAPABILITY</div>
-          <h3 class="connect-title">Connect Your GitHub</h3>
-          <p class="connect-description">
-            This demo currently uses local sample activity stored in your browser. A future release could securely integrate with GitHub's GraphQL API via Personal Access Tokens to visualize your genuine commit graph in this custom theme.
-          </p>
-          <div class="connect-action-row">
-            <button type="button" class="btn btn-disabled" disabled aria-disabled="true">
-              <span>GitHub Integration — Coming Soon</span>
-            </button>
-            <span class="connect-security-note">🔒 Zero credentials stored. We respect privacy &amp; security.</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- HOW IT WORKS & DEVELOPER MOTIVATION SECTION -->
-    <section id="guide-section" class="guide-and-motivation-section container">
-      <div class="two-col-grid">
-        <!-- HOW IT WORKS -->
-        <div class="section-card how-card">
-          <div class="card-header-clean">
-            <h2 class="section-heading-sm">
-              <span>🧠</span> How the Green Squares Work
+    <!-- SETTINGS & DATA CONTROLS SECTION -->
+    <section id="settings-section" class="settings-section container">
+      <div class="card-panel">
+        <div class="panel-header-clean">
+          <div>
+            <h2 class="panel-heading">
+              <span>⚙️</span> Settings &amp; Data Management
             </h2>
-            <span class="badge-tag">Git Workflow</span>
-          </div>
-
-          <div class="steps-flow">
-            <div class="step-card">
-              <div class="step-badge">1</div>
-              <div class="step-content">
-                <div class="step-title">Write Code</div>
-                <div class="step-desc">Solve bugs, craft features, or polish tests in your local editor.</div>
-              </div>
-            </div>
-
-            <div class="step-card">
-              <div class="step-badge">2</div>
-              <div class="step-content">
-                <div class="step-title">Commit Changes</div>
-                <div class="step-desc">Stage files and formulate meaningful atomic commit messages.</div>
-              </div>
-            </div>
-
-            <div class="step-card">
-              <div class="step-badge">3</div>
-              <div class="step-content">
-                <div class="step-title">Push to GitHub</div>
-                <div class="step-desc">Synchronize with origin default branch using <code>git push origin main</code>.</div>
-              </div>
-            </div>
-
-            <div class="step-card">
-              <div class="step-badge">4</div>
-              <div class="step-content">
-                <div class="step-title">Contribution Recorded</div>
-                <div class="step-desc">Square transforms into emerald green based on your commit volume.</div>
-              </div>
-            </div>
-
-            <div class="step-card highlight">
-              <div class="step-badge fire">5</div>
-              <div class="step-content">
-                <div class="step-title">Keep Your Streak Alive 🔥</div>
-                <div class="step-desc">Consistency > perfection. Never break the chain two days in a row!</div>
-              </div>
-            </div>
+            <p class="panel-subtext">Manage dashboard preferences, themes, dataset generation, and local persistence.</p>
           </div>
         </div>
 
-        <!-- FUN DEVELOPER MOTIVATION CORNER -->
-        <div class="section-card motivation-corner-card">
-          <div class="card-header-clean">
-            <h2 class="section-heading-sm">
-              <span>💡</span> Developer Motivation Corner
-            </h2>
-            <span class="badge-tag">Junoon Quotes</span>
+        <div class="settings-grid">
+          <!-- Theme Preference -->
+          <div class="setting-item-box">
+            <div class="setting-info">
+              <h4 class="setting-title">Interface Theme</h4>
+              <p class="setting-desc">Select dark mode, light mode, or match your operating system theme.</p>
+            </div>
+            <div class="setting-action">
+              <select id="settings-theme-select" class="form-select">
+                <option value="dark">🌙 Dark Mode</option>
+                <option value="light">☀️ Light Mode</option>
+                <option value="system">💻 System Theme</option>
+              </select>
+            </div>
           </div>
 
-          <div class="quote-display-box">
-            <div class="quote-symbol">“</div>
-            <div id="corner-quote-text" class="quote-text-large">
-              Commit today. Regret never.
+          <!-- Weekly Target -->
+          <div class="setting-item-box">
+            <div class="setting-info">
+              <h4 class="setting-title">Weekly Contribution Target</h4>
+              <p class="setting-desc">Set the number of commits/PRs you aim to record each calendar week.</p>
             </div>
-            <div class="quote-author">— The Green Square Manifesto</div>
+            <div class="setting-action">
+              <input type="number" id="settings-goal-input" class="form-control" style="width: 100px;" min="5" max="200" step="5" value="35">
+            </div>
           </div>
 
-          <div class="quote-controls">
-            <button id="btn-next-quote" type="button" class="btn btn-secondary btn-block">
-              <span>Next Dose of Motivation 🎲</span>
-            </button>
+          <!-- Demo Generator -->
+          <div class="setting-item-box">
+            <div class="setting-info">
+              <h4 class="setting-title">Generate New Demo Dataset</h4>
+              <p class="setting-desc">Replace current demo data with fresh simulated activity (Low, Normal, or High volume).</p>
+            </div>
+            <div class="setting-action">
+              <button type="button" id="btn-settings-open-gen" class="btn btn-secondary btn-sm">
+                <span>⚡ Generate Demo Data</span>
+              </button>
+            </div>
           </div>
 
-          <div class="fun-rules-list">
-            <div class="rule-item">
-              <span class="rule-bullet">🟩</span>
-              <span><strong>Rule #1:</strong> Even a 1-line README typo fix counts as green square dopamine.</span>
+          <!-- Reset All Data -->
+          <div class="setting-item-box danger-box">
+            <div class="setting-info">
+              <h4 class="setting-title text-danger">Reset All Activity</h4>
+              <p class="setting-desc">Clears custom additions and resets the application to the initial base dataset.</p>
             </div>
-            <div class="rule-item">
-              <span class="rule-bullet">🔥</span>
-              <span><strong>Rule #2:</strong> Missing 1 day is human. Missing 2 days starts a bad habit.</span>
-            </div>
-            <div class="rule-item">
-              <span class="rule-bullet">🚀</span>
-              <span><strong>Rule #3:</strong> Production bug fix bhi ek contribution hai... maybe. 😭</span>
+            <div class="setting-action">
+              <button type="button" id="btn-settings-reset" class="btn btn-danger btn-sm">
+                <span>🔄 Reset All Data</span>
+              </button>
             </div>
           </div>
         </div>
@@ -723,202 +563,385 @@
     </section>
   </main>
 
-  <!-- FOOTER -->
+  <!-- APPLICATION FOOTER -->
   <footer class="app-footer">
-    <div class="container footer-inner">
-      <div class="footer-top">
-        <div class="footer-brand">
+    <div class="container footer-container">
+      <div class="footer-top-row">
+        <div class="footer-brand-info">
           <div class="footer-logo">
-            <span class="brand-icon">🟩</span>
-            <span class="footer-title">GitHub Green Squares Ka Junoon</span>
+            <span class="footer-square">🟩</span>
+            <span class="footer-title">GitHub Green Squares</span>
           </div>
-          <p class="footer-tagline">
-            "Commit karo. Green squares banao. Streak maintain karo. 🔥"
-          </p>
+          <p class="footer-tagline">"Turn your coding activity into measurable developer progress."</p>
           <p class="footer-desc">
-            GitHub-inspired contribution activity visualizer and developer consistency simulator. Designed with rich vanilla HTML5, CSS3, and modern JavaScript.
+            Independent developer contribution analytics dashboard built with pure HTML5, CSS3, and modern Vanilla JavaScript.
+            Designed for local-first developer productivity and streak tracking.
           </p>
         </div>
 
-        <div class="footer-links-group">
-          <div class="footer-heading">Official Resources</div>
+        <div class="footer-nav-group">
+          <h5 class="footer-group-title">Navigation</h5>
           <ul class="footer-links">
-            <li><a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub.com ↗</a></li>
-            <li><a href="https://docs.github.com/" target="_blank" rel="noopener noreferrer">GitHub Documentation ↗</a></li>
-            <li><a href="https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-settings-on-your-profile/viewing-contributions-on-your-profile" target="_blank" rel="noopener noreferrer">About Profile Contributions ↗</a></li>
+            <li><a href="#dashboard">Dashboard</a></li>
+            <li><a href="#activity-section">Activity Heatmap</a></li>
+            <li><a href="#analytics-section">Analytics &amp; Goals</a></li>
+            <li><a href="#achievements-section">Achievements</a></li>
+            <li><a href="#settings-section">Settings</a></li>
           </ul>
         </div>
 
-        <div class="footer-links-group">
-          <div class="footer-heading">Dashboard Sections</div>
+        <div class="footer-nav-group">
+          <h5 class="footer-group-title">Documentation &amp; Source</h5>
           <ul class="footer-links">
-            <li><a href="#dashboard">Dashboard Overview</a></li>
-            <li><a href="#heatmap-section">Interactive Heatmap</a></li>
-            <li><a href="#streak-section">Streak &amp; Goals</a></li>
-            <li><a href="#repositories-section">Demo Repositories</a></li>
-            <li><a href="#guide-section">How It Works</a></li>
+            <li><a href="https://github.com/somansinghal/Green_squares" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a></li>
+            <li><a href="https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-settings-on-your-profile/viewing-contributions-on-your-profile" target="_blank" rel="noopener noreferrer">About GitHub Contributions ↗</a></li>
+            <li><a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub.com ↗</a></li>
           </ul>
         </div>
       </div>
 
-      <div class="footer-bottom">
+      <div class="footer-bottom-row">
         <div class="footer-copy">
-          &copy; 2026 <strong>GitHub Green Squares Ka Junoon</strong>. Built for developers with pure passion &amp; green square pride.
+          &copy; 2026 <strong>GitHub Green Squares</strong> &bull; Crafted by Soman Singhal.
         </div>
         <div class="footer-disclaimer">
-          Independent student educational showcase. Not affiliated with, endorsed by, or sponsored by GitHub, Inc.
+          V1 is a local-first application using simulated demo activity. Not connected to live GitHub credentials.
         </div>
       </div>
     </div>
   </footer>
 
-  <!-- MODALS -->
-  <!-- 1. Contribution Details Modal -->
-  <div id="contrib-modal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="modal-contrib-title">
-    <div class="modal-dialog">
+  <!-- ==========================================================================
+       MODALS SYSTEM (ACCESSIBLE, NO BROWSER ALERTS)
+       ========================================================================== -->
+
+  <!-- 1. DAY DETAILS MODAL (Inspect, Edit, Delete) -->
+  <div id="modal-day-details" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="day-modal-title">
+    <div class="modal-window">
       <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="modal-icon">🟩</span>
-          <h3 id="modal-contrib-title" class="modal-title">Contribution Details</h3>
+        <div class="modal-title-wrap">
+          <span class="modal-title-icon">🟩</span>
+          <h3 id="day-modal-title" class="modal-title">Day Activity Details</h3>
         </div>
-        <button type="button" class="modal-close-btn" id="modal-contrib-close" aria-label="Close dialog">✕</button>
+        <button type="button" class="modal-close-btn" id="btn-close-day-modal" aria-label="Close dialog">✕</button>
       </div>
 
       <div class="modal-body">
-        <div class="contrib-detail-summary">
-          <div class="detail-cell-preview" id="modal-cell-preview">
-            <div class="preview-square" id="modal-preview-square"></div>
+        <div class="day-overview-badge">
+          <div class="day-overview-date" id="day-modal-date">October 7, 2026</div>
+          <div class="day-overview-count" id="day-modal-total-count">8 Contributions</div>
+        </div>
+
+        <div class="breakdown-cards-grid">
+          <div class="breakdown-card">
+            <span class="breakdown-label">💻 Commits</span>
+            <span class="breakdown-val" id="day-modal-commits">0</span>
           </div>
-          <div class="detail-info-main">
-            <div class="detail-date-display" id="modal-date">12 March 2026</div>
-            <div class="detail-commit-badge" id="modal-commit-count">5 contributions</div>
+          <div class="breakdown-card">
+            <span class="breakdown-label">🔀 Pull Requests</span>
+            <span class="breakdown-val" id="day-modal-prs">0</span>
+          </div>
+          <div class="breakdown-card">
+            <span class="breakdown-label">⚠️ Issues</span>
+            <span class="breakdown-val" id="day-modal-issues">0</span>
+          </div>
+          <div class="breakdown-card">
+            <span class="breakdown-label">👁️ Code Reviews</span>
+            <span class="breakdown-val" id="day-modal-reviews">0</span>
           </div>
         </div>
 
-        <div class="modal-data-table">
-          <div class="data-row">
-            <span class="data-key">Activity Level:</span>
-            <span class="data-val" id="modal-level">Very High</span>
-          </div>
-          <div class="data-row">
-            <span class="data-key">Primary Repository:</span>
-            <span class="data-val code-font" id="modal-repo">Green-Square-Lab</span>
-          </div>
-          <div class="data-row">
-            <span class="data-key">Day of Week:</span>
-            <span class="data-val" id="modal-day-name">Thursday</span>
-          </div>
-          <div class="data-row">
-            <span class="data-key">Data Source:</span>
-            <span class="data-val text-muted">Demo Activity (Local Storage)</span>
+        <div class="day-repos-section">
+          <h4 class="subheading-sm">Active Repositories:</h4>
+          <div class="day-repos-tags" id="day-modal-repos">
+            <span class="repo-tag">LegalLens AI</span>
+            <span class="repo-tag">ScanForge</span>
           </div>
         </div>
 
-        <div class="modal-quick-action">
-          <button type="button" id="btn-modal-add-one" class="btn btn-outline-success btn-sm btn-block">
-            <span>+1 Commit to this day</span>
-          </button>
+        <div class="day-note-section" id="day-modal-note-wrap" style="display: none;">
+          <h4 class="subheading-sm">Note / Commit Summary:</h4>
+          <p class="day-note-text" id="day-modal-note"></p>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary btn-sm" id="modal-contrib-done">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. Reset Confirmation Modal -->
-  <div id="reset-modal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="modal-reset-title">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="modal-icon">⚠️</span>
-          <h3 id="modal-reset-title" class="modal-title">Reset Demo Data</h3>
-        </div>
-        <button type="button" class="modal-close-btn" id="modal-reset-close" aria-label="Close dialog">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <p class="modal-alert-text">
-          Are you sure you want to <strong>reset all demo contribution activity</strong>?
-        </p>
-        <p class="modal-sub-text">
-          This will restore the initial simulated sample dataset, recalculate streaks, and reset your custom commits.
-        </p>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="modal-reset-cancel">Cancel</button>
-        <button type="button" class="btn btn-danger" id="modal-reset-confirm">Reset</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. Achievement Details Modal -->
-  <div id="achievement-modal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="modal-achieve-title">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="modal-icon" id="modal-achieve-icon">🏆</span>
-          <h3 id="modal-achieve-title" class="modal-title">Achievement Details</h3>
-        </div>
-        <button type="button" class="modal-close-btn" id="modal-achieve-close" aria-label="Close dialog">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="achievement-modal-badge" id="modal-achieve-badge-container">
-          <div class="achieve-giant-icon" id="modal-achieve-giant-icon">🔥</div>
-          <h4 id="modal-achieve-name">3 Day Streak</h4>
-          <span class="badge-status-pill" id="modal-achieve-status">Unlocked</span>
-        </div>
-
-        <p id="modal-achieve-desc" class="modal-achieve-description">
-          Maintain an active commit streak of at least 3 consecutive days.
-        </p>
-
-        <div class="modal-achieve-progress-box">
-          <div class="progress-labels">
-            <span>Criteria Progress</span>
-            <span id="modal-achieve-progress-text">3 / 3 days</span>
-          </div>
-          <div class="progress-bar-container">
-            <div class="progress-bar-fill" id="modal-achieve-progress-fill" style="width: 100%;"></div>
-          </div>
-        </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary btn-sm" id="modal-achieve-done">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. Export Summary Modal -->
-  <div id="export-modal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="modal-export-title">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="modal-icon">📋</span>
-          <h3 id="modal-export-title" class="modal-title">Export Activity Summary</h3>
-        </div>
-        <button type="button" class="modal-close-btn" id="modal-export-close" aria-label="Close dialog">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <p class="modal-sub-text" style="margin-bottom: 12px;">
-          Copy this formatted Markdown badge snippet or shareable text summary for your GitHub README:
-        </p>
-        <textarea id="export-textarea" class="form-control" rows="9" readonly style="font-family: var(--font-mono); font-size: 0.78rem; width: 100%; resize: vertical;"></textarea>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary btn-sm" id="modal-export-close-btn">Close</button>
-        <button type="button" class="btn btn-primary btn-sm" id="btn-copy-export">
-          <span>📋 Copy to Clipboard</span>
+        <button type="button" class="btn btn-outline-danger btn-sm" id="btn-day-delete">
+          <span>🗑️ Delete</span>
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-day-edit">
+          <span>✏️ Edit</span>
+        </button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-day-close-action">
+          <span>Close</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Vanilla JavaScript Application Logic -->
+  <!-- 2. ADD ACTIVITY MODAL & FORM -->
+  <div id="modal-add-activity" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="add-modal-title">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-title-icon">➕</span>
+          <h3 id="add-modal-title" class="modal-title">Add Contribution Activity</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-close-add-modal" aria-label="Close dialog">✕</button>
+      </div>
+
+      <form id="form-add-activity" novalidate>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="add-input-date" class="form-label">Date <span class="req">*</span></label>
+            <input type="date" id="add-input-date" class="form-control" required>
+            <span class="field-error" id="err-add-date">Please select a valid date.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="add-input-repo" class="form-label">Repository <span class="req">*</span></label>
+            <select id="add-input-repo" class="form-control" required>
+              <option value="LegalLens AI">LegalLens AI</option>
+              <option value="ScanForge">ScanForge</option>
+              <option value="Dev-Journal">Dev-Journal</option>
+              <option value="Green-Square-Lab">Green-Square-Lab</option>
+              <option value="Commit-Tracker">Commit-Tracker</option>
+            </select>
+            <span class="field-error" id="err-add-repo">Please select a repository.</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="add-input-type" class="form-label">Activity Type <span class="req">*</span></label>
+              <select id="add-input-type" class="form-control" required>
+                <option value="commits">Commit 💻</option>
+                <option value="prs">Pull Request 🔀</option>
+                <option value="issues">Issue ⚠️</option>
+                <option value="reviews">Code Review 👁️</option>
+              </select>
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="add-input-count" class="form-label">Count <span class="req">*</span></label>
+              <input type="number" id="add-input-count" class="form-control" min="1" max="100" value="3" required>
+              <span class="field-error" id="err-add-count">Must be a positive integer (1-100).</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="add-input-note" class="form-label">Description / Commit Message</label>
+            <input type="text" id="add-input-note" class="form-control" placeholder="e.g. feat(auth): add OAuth2 token refresh workflow" maxlength="120">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-add">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-add">Save Activity</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. EDIT ACTIVITY MODAL & FORM -->
+  <div id="modal-edit-activity" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="edit-modal-title">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-title-icon">✏️</span>
+          <h3 id="edit-modal-title" class="modal-title">Edit Day Activity</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-close-edit-modal" aria-label="Close dialog">✕</button>
+      </div>
+
+      <form id="form-edit-activity" novalidate>
+        <div class="modal-body">
+          <input type="hidden" id="edit-hidden-date">
+          <div class="edit-date-display-badge">
+            <span>Editing activity for:</span>
+            <strong id="edit-display-date-text">October 7, 2026</strong>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-input-repo" class="form-label">Primary Repository <span class="req">*</span></label>
+            <select id="edit-input-repo" class="form-control" required>
+              <option value="LegalLens AI">LegalLens AI</option>
+              <option value="ScanForge">ScanForge</option>
+              <option value="Dev-Journal">Dev-Journal</option>
+              <option value="Green-Square-Lab">Green-Square-Lab</option>
+              <option value="Commit-Tracker">Commit-Tracker</option>
+            </select>
+          </div>
+
+          <div class="edit-counts-grid">
+            <div class="form-group">
+              <label for="edit-commits" class="form-label">💻 Commits</label>
+              <input type="number" id="edit-commits" class="form-control" min="0" max="100" value="0">
+            </div>
+            <div class="form-group">
+              <label for="edit-prs" class="form-label">🔀 Pull Requests</label>
+              <input type="number" id="edit-prs" class="form-control" min="0" max="50" value="0">
+            </div>
+            <div class="form-group">
+              <label for="edit-issues" class="form-label">⚠️ Issues</label>
+              <input type="number" id="edit-issues" class="form-control" min="0" max="50" value="0">
+            </div>
+            <div class="form-group">
+              <label for="edit-reviews" class="form-label">👁️ Reviews</label>
+              <input type="number" id="edit-reviews" class="form-control" min="0" max="50" value="0">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-input-note" class="form-label">Description / Note</label>
+            <input type="text" id="edit-input-note" class="form-control" maxlength="120">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-edit">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-edit">Update Activity</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. DELETE CONFIRMATION MODAL -->
+  <div id="modal-delete-confirm" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="del-modal-title">
+    <div class="modal-window modal-sm">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-title-icon text-danger">⚠️</span>
+          <h3 id="del-modal-title" class="modal-title">Delete Activity Confirmation</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-close-delete-modal" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-alert-msg">
+          Are you sure you want to permanently delete all contribution records for <strong id="delete-target-date">October 7, 2026</strong>?
+        </p>
+        <p class="modal-alert-submsg">This will immediately update the heatmap, recalculate streaks, and adjust statistics.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-delete">Cancel</button>
+        <button type="button" class="btn btn-danger" id="btn-confirm-delete">Delete Activity</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. GENERATE DEMO DATA CONFIRMATION MODAL -->
+  <div id="modal-generate-demo" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="gen-modal-title">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-title-icon">⚡</span>
+          <h3 id="gen-modal-title" class="modal-title">Generate Demo Activity</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-close-gen-modal" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-desc-text">
+          Select the intensity level for the simulated contribution dataset. This will replace existing activity for the currently selected year (<strong id="gen-target-year">2026</strong>).
+        </p>
+
+        <div class="intensity-options-grid">
+          <label class="intensity-card">
+            <input type="radio" name="demo-intensity" value="low" class="intensity-radio">
+            <div class="intensity-card-content">
+              <span class="intensity-name">Low Activity</span>
+              <span class="intensity-sub">Part-time contributor (~80–150 contributions/year)</span>
+            </div>
+          </label>
+
+          <label class="intensity-card selected">
+            <input type="radio" name="demo-intensity" value="normal" class="intensity-radio" checked>
+            <div class="intensity-card-content">
+              <span class="intensity-name">Normal Activity</span>
+              <span class="intensity-sub">Consistent developer (~400–700 contributions/year)</span>
+            </div>
+          </label>
+
+          <label class="intensity-card">
+            <input type="radio" name="demo-intensity" value="high" class="intensity-radio">
+            <div class="intensity-card-content">
+              <span class="intensity-name">High Activity</span>
+              <span class="intensity-sub">Hardcore machine (~1000–1600 contributions/year)</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-gen">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-gen">Generate Dataset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. RESET ALL DATA CONFIRMATION MODAL -->
+  <div id="modal-reset-confirm" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="reset-modal-title">
+    <div class="modal-window modal-sm">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-title-icon text-danger">⚠️</span>
+          <h3 id="reset-modal-title" class="modal-title">Reset All Data</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-close-reset-modal" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-alert-msg">
+          Are you sure you want to <strong>reset all application data</strong>?
+        </p>
+        <p class="modal-alert-submsg">
+          This restores the initial demo dataset, resets your custom contributions, clears streaks, and refreshes localStorage.
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-reset">Cancel</button>
+        <button type="button" class="btn btn-danger" id="btn-confirm-reset">Reset Everything</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. ACHIEVEMENT DETAILS MODAL -->
+  <div id="modal-achievement-detail" class="modal-backdrop" aria-hidden="true" role="dialog" aria-labelledby="achieve-modal-title">
+    <div class="modal-window modal-sm">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-title-icon" id="achieve-modal-icon">🏆</span>
+          <h3 id="achieve-modal-title" class="modal-title">Achievement Details</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-close-achieve-modal" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="modal-body text-center">
+        <div class="achieve-giant-symbol" id="achieve-modal-symbol">🔥</div>
+        <h4 class="achieve-heading" id="achieve-modal-name">7 Day Streak</h4>
+        <span class="status-pill" id="achieve-modal-badge">Unlocked</span>
+        <p class="achieve-desc-text" id="achieve-modal-desc">Code and contribute for 7 consecutive calendar days.</p>
+
+        <div class="achieve-progress-box">
+          <div class="achieve-progress-header">
+            <span>Progress:</span>
+            <strong id="achieve-modal-progress-text">7 / 7 days</strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-indicator" id="achieve-modal-progress-fill" style="width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-close-achieve-action">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
   <script src="script.js"></script>
 </body>
 </html>
