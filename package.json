@@ -1,0 +1,24 @@
+{
+  "name": "github-green-squares",
+  "version": "2.0.0",
+  "description": "GitHub Green Squares — Developer Contribution Analytics",
+  "main": "script.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/runner.js",
+    "test:playwright": "playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/somansinghal/Green_squares.git"
+  },
+  "keywords": [
+    "github",
+    "contribution-graph",
+    "heatmap",
+    "analytics",
+    "developer-productivity"
+  ],
+  "author": "Soman Singhal",
+  "license": "MIT"
+}

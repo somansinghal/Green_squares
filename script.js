@@ -1,20 +1,20 @@
 /**
- * 🟩 GitHub Green Squares — Developer Contribution Analytics
+ * 🟩 GitHub Green Squares — Developer Contribution Analytics (V2 Production)
  * Tagline: "Turn your coding activity into measurable developer progress."
  * 
  * Pure Vanilla JavaScript ES6+ (Zero external dependencies).
- * Fully functional developer contribution analytics dashboard with:
- * - Local-first data architecture & DataProvider abstraction
- * - GitHub-style 365-day contribution calendar heatmap
- * - Day inspection, Add, Edit, Delete modals with real-time recalculation
- * - Streak engine & transparent consistency score algorithm
- * - Weekly (Mon->Sun) and Monthly volume analytics
- * - Dynamic vector SVG contribution trend graph
- * - Weekly contribution goal tracker with persistence
- * - Repository analytics with interactive filter
- * - 10 system achievements with live milestone tracking
- * - Multi-year datasets (2024, 2025, 2026)
- * - Accessible modals, tooltips, toasts, and dark/light/system theme switcher
+ * Architecture:
+ * - Centralized DOM Reference System with Graceful Missing-Element Handling (Fixes Root Cause)
+ * - Dual DataProvider Architecture: DemoDataProvider & GitHubDataProvider
+ * - Real GitHub OAuth Integration (Connect, Disconnect, Sync, Profile, Repos, Events)
+ * - 365-Day GitHub Contribution Calendar Heatmap
+ * - Real-time Calculation Engines (Streaks, Consistency Algorithm, Metrics)
+ * - Dynamic Vector SVG Trend Curve & Custom HTML/CSS Analytics Charts
+ * - Full CRUD Operations in Demo Mode with LocalStorage Persistence
+ * - Data Import / Export (JSON Backup & Migration)
+ * - Mobile Navigation Menu with Accessible Toggle
+ * - Dark / Light / System Theme Engine
+ * - Zero Uncaught Console Errors
  */
 
 (function () {
@@ -27,11 +27,10 @@
   const STORAGE_KEY = 'github_green_squares_analytics_v2';
   const THEME_KEY = 'github_green_squares_theme_v2';
   const GOAL_KEY = 'github_green_squares_goal_v2';
+  const CACHE_KEY_GH = 'github_green_squares_gh_cache_v2';
 
-  // Simulated reference date for 2026: October 7, 2026
   const SIMULATED_TODAY_STR = '2026-10-07';
-  const DEFAULT_YEAR = '2026';
-  const SUPPORTED_YEARS = ['2026', '2025', '2024'];
+  const SUPPORTED_DEMO_YEARS = ['2026', '2025', '2024'];
 
   const DEMO_REPOSITORIES = [
     'LegalLens AI',
@@ -46,7 +45,6 @@
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
-  const WEEKDAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const WEEKDAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   // 10 System Achievements Definitions (Section 25)
@@ -168,23 +166,168 @@
   ];
 
   // ==========================================================================
-  // 2. DATA LAYER ARCHITECTURE & PROVIDER ABSTRACTION (Section 3 & 36)
+  // 2. CENTRALIZED DOM REFERENCE SYSTEM (Section 1 & 29)
+  // Fixes the root cause of "null is not an object" by validating references
+  // ==========================================================================
+
+  let DOM = {};
+
+  function initDOMReferences() {
+    DOM = {
+      // Header & Navigation
+      btnMobileMenu: document.getElementById('btn-mobile-menu'),
+      mainNavList: document.getElementById('main-nav-list'),
+      themeBtn: document.getElementById('theme-btn'),
+      themeIcon: document.getElementById('theme-icon'),
+      themeLabel: document.getElementById('theme-label'),
+      themeMenu: document.getElementById('theme-menu'),
+      settingsThemeSelect: document.getElementById('settings-theme-select'),
+      btnHeaderAdd: document.getElementById('btn-header-add'),
+      btnHeaderGenerate: document.getElementById('btn-header-generate'),
+      btnHeaderReset: document.getElementById('btn-header-reset'),
+
+      // GitHub Auth & Mode Badges
+      btnConnectGithub: document.getElementById('btn-connect-github'),
+      userConnectedBadge: document.getElementById('user-connected-badge'),
+      headerUserAvatar: document.getElementById('header-user-avatar'),
+      headerUserName: document.getElementById('header-user-name'),
+      btnRefreshGithub: document.getElementById('btn-refresh-github'),
+      btnDisconnectGithub: document.getElementById('btn-disconnect-github'),
+      dashboardModeBadge: document.getElementById('dashboard-mode-badge'),
+      modeTitleText: document.getElementById('mode-title-text'),
+      modeDescText: document.getElementById('mode-desc-text'),
+      apiHealthBadge: document.getElementById('api-health-badge'),
+      apiHealthLabel: document.getElementById('api-health-label'),
+
+      // Profile Card Elements
+      profUserName: document.getElementById('prof-user-name'),
+      profUserRole: document.getElementById('prof-user-role'),
+      profUserBio: document.getElementById('prof-user-bio'),
+      profAvatarImg: document.getElementById('prof-avatar-img'),
+      profAvatarFallback: document.getElementById('prof-avatar-fallback'),
+      profAvatarInitials: document.getElementById('prof-avatar-initials'),
+      profStatusPill: document.getElementById('prof-status-pill'),
+      profBadgeDot: document.getElementById('prof-badge-dot'),
+      profStatusLabel: document.getElementById('prof-status-label'),
+      profGithubMeta: document.getElementById('prof-github-meta'),
+      profGhRepos: document.getElementById('prof-gh-repos'),
+      profGhFollowers: document.getElementById('prof-gh-followers'),
+      profGhFollowing: document.getElementById('prof-gh-following'),
+      profGithubLink: document.getElementById('prof-github-link'),
+      profTotalContrib: document.getElementById('prof-total-contributions'),
+      profYearLabel: document.getElementById('prof-year-label'),
+      profCurrentStreak: document.getElementById('prof-current-streak'),
+      profLongestStreak: document.getElementById('prof-longest-streak'),
+      profActiveDays: document.getElementById('prof-active-days'),
+      profActivePct: document.getElementById('prof-active-pct'),
+
+      // 8 Metric Cards Elements
+      statAvgContrib: document.getElementById('stat-avg-contributions'),
+      statCurrentStreak: document.getElementById('stat-current-streak'),
+      statStreakMsg: document.getElementById('stat-streak-msg'),
+      statLongestStreak: document.getElementById('stat-longest-streak'),
+      statBestMonth: document.getElementById('stat-best-month'),
+      statBestMonthVol: document.getElementById('stat-best-month-vol'),
+      statBestDay: document.getElementById('stat-best-day'),
+      statBestDayDate: document.getElementById('stat-best-day-date'),
+      statBestWeekday: document.getElementById('stat-best-weekday'),
+      statBestWeekdayVol: document.getElementById('stat-best-weekday-vol'),
+      statConsistencyScore: document.getElementById('stat-consistency-score'),
+      statConsistencyDesc: document.getElementById('stat-consistency-desc'),
+      statActiveRepos: document.getElementById('stat-active-repos'),
+      statReposSub: document.getElementById('stat-repos-sub'),
+
+      // Heatmap Controls & Calendar
+      yearSelect: document.getElementById('year-select'),
+      typeFilterSelect: document.getElementById('type-filter-select'),
+      btnAddActivityModal: document.getElementById('btn-add-activity-modal'),
+      btnOpenGenModal: document.getElementById('btn-open-gen-modal'),
+      heatmapCalendar: document.getElementById('heatmap-calendar'),
+      heatmapSubtext: document.getElementById('heatmap-subtext'),
+      heatmapModeTag: document.getElementById('heatmap-mode-tag'),
+      filterPills: document.querySelectorAll('.filter-pill'),
+
+      // Weekly Chart & Goal Tracker
+      weeklyAnalyticsChart: document.getElementById('weekly-analytics-chart'),
+      weeklyPeakInfo: document.getElementById('weekly-peak-info'),
+      weeklyAvgInfo: document.getElementById('weekly-avg-info'),
+      btnGoalDec: document.getElementById('btn-goal-dec'),
+      goalTargetInput: document.getElementById('goal-target-input'),
+      btnGoalInc: document.getElementById('btn-goal-inc'),
+      goalTargetDisplay: document.getElementById('goal-target-display'),
+      goalCurrentDisplay: document.getElementById('goal-current-display'),
+      goalPercentDisplay: document.getElementById('goal-percent-display'),
+      goalProgressBar: document.getElementById('goal-progress-bar'),
+      goalProgressFill: document.getElementById('goal-progress-fill'),
+      goalStatusBox: document.getElementById('goal-status-box'),
+      goalStatusIcon: document.getElementById('goal-status-icon'),
+      goalStatusText: document.getElementById('goal-status-text'),
+
+      // Monthly Chart & Trend SVG
+      monthlyAnalyticsChart: document.getElementById('monthly-analytics-chart'),
+      monthlyBestInfo: document.getElementById('monthly-best-info'),
+      monthlyTotalInfo: document.getElementById('monthly-total-info'),
+      trendChartContainer: document.getElementById('trend-chart-container'),
+      trendPeakPeriod: document.getElementById('trend-peak-period'),
+      trendVelocityLabel: document.getElementById('trend-velocity-label'),
+
+      // Repository Analytics & Recent Stream
+      repoFilterIndicator: document.getElementById('repo-filter-indicator'),
+      repoFilterActiveText: document.getElementById('repo-filter-active-text'),
+      btnClearRepoFilter: document.getElementById('btn-clear-repo-filter'),
+      repoAnalyticsList: document.getElementById('repo-analytics-list'),
+      activityStreamCount: document.getElementById('activity-stream-count'),
+      recentActivityFeed: document.getElementById('recent-activity-feed'),
+
+      // Achievements
+      achievementsTallyBadge: document.getElementById('achievements-tally-badge'),
+      achievementsGrid: document.getElementById('achievements-grid'),
+
+      // Settings
+      settingsGoalInput: document.getElementById('settings-goal-input'),
+      btnExportData: document.getElementById('btn-export-data'),
+      btnImportData: document.getElementById('btn-import-data'),
+      btnSettingsOpenGen: document.getElementById('btn-settings-open-gen'),
+      btnSettingsReset: document.getElementById('btn-settings-reset'),
+      hiddenExportLink: document.getElementById('hidden-export-link'),
+
+      // Global Components
+      toastContainer: document.getElementById('toast-container'),
+      appTooltip: document.getElementById('app-tooltip')
+    };
+  }
+
+  // Safe DOM helper utilities (prevent any null-reference crashes)
+  function setText(el, text) {
+    if (el) el.textContent = text !== undefined && text !== null ? text : '';
+  }
+  function setHTML(el, html) {
+    if (el) el.innerHTML = html !== undefined && html !== null ? html : '';
+  }
+  function setVal(el, val) {
+    if (el) el.value = val !== undefined && val !== null ? val : '';
+  }
+
+  // ==========================================================================
+  // 3. DATA LAYER ARCHITECTURE & PROVIDER ABSTRACTION (Section 9)
   // ==========================================================================
 
   /**
-   * DataProvider interface (Abstraction for local demo vs future GitHub API provider)
+   * DataProvider Base Class
    */
   class DataProvider {
-    getYearData(year) { throw new Error('getYearData not implemented'); }
-    addActivity(year, entry) { throw new Error('addActivity not implemented'); }
-    updateActivity(year, entry) { throw new Error('updateActivity not implemented'); }
-    deleteActivity(year, dateStr) { throw new Error('deleteActivity not implemented'); }
-    generateDemo(year, intensity) { throw new Error('generateDemo not implemented'); }
-    resetAll() { throw new Error('resetAll not implemented'); }
+    async getYearData(year) { throw new Error('getYearData not implemented'); }
+    async addActivity(year, entry) { throw new Error('addActivity not implemented'); }
+    async updateActivity(year, entry) { throw new Error('updateActivity not implemented'); }
+    async deleteActivity(year, dateStr) { throw new Error('deleteActivity not implemented'); }
+    async generateDemo(year, intensity) { throw new Error('generateDemo not implemented'); }
+    async resetAll() { throw new Error('resetAll not implemented'); }
+    async getRepositories() { return []; }
+    async getRecentActivity() { return []; }
   }
 
   /**
-   * Local-First DemoDataProvider implementation using localStorage
+   * DemoDataProvider Implementation (Local-First Simulation)
    */
   class DemoDataProvider extends DataProvider {
     constructor() {
@@ -202,7 +345,7 @@
           }
         }
       } catch (err) {
-        console.warn('Could not read existing state from localStorage:', err);
+        console.warn('Could not read demo state from localStorage:', err);
       }
       return this.createInitialDemoState();
     }
@@ -211,7 +354,7 @@
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
       } catch (err) {
-        console.error('Failed to save app state to localStorage:', err);
+        console.error('Failed to save state to localStorage:', err);
         showToast('Storage quota exceeded or private mode enabled.', 'error');
       }
     }
@@ -224,7 +367,7 @@
         years: {}
       };
 
-      SUPPORTED_YEARS.forEach((yr) => {
+      SUPPORTED_DEMO_YEARS.forEach((yr) => {
         state.years[yr] = generateDemoYearData(parseInt(yr, 10), 'normal');
       });
 
@@ -234,7 +377,7 @@
       return state;
     }
 
-    getYearData(year) {
+    async getYearData(year) {
       const yrStr = String(year);
       if (!this.state.years[yrStr]) {
         this.state.years[yrStr] = generateDemoYearData(parseInt(yrStr, 10), 'normal');
@@ -243,7 +386,7 @@
       return this.state.years[yrStr];
     }
 
-    addActivity(year, newEntry) {
+    async addActivity(year, newEntry) {
       const yrStr = String(year);
       if (!this.state.years[yrStr]) {
         this.state.years[yrStr] = {};
@@ -282,7 +425,7 @@
       return existing;
     }
 
-    updateActivity(year, updatedData) {
+    async updateActivity(year, updatedData) {
       const yrStr = String(year);
       if (!this.state.years[yrStr]) return null;
 
@@ -314,7 +457,7 @@
       return this.state.years[yrStr][dateStr] || null;
     }
 
-    deleteActivity(year, dateStr) {
+    async deleteActivity(year, dateStr) {
       const yrStr = String(year);
       if (this.state.years[yrStr] && this.state.years[yrStr][dateStr]) {
         delete this.state.years[yrStr][dateStr];
@@ -324,14 +467,14 @@
       return false;
     }
 
-    generateDemo(year, intensity = 'normal') {
+    async generateDemo(year, intensity = 'normal') {
       const yrStr = String(year);
       this.state.years[yrStr] = generateDemoYearData(parseInt(yrStr, 10), intensity);
       this.saveAppState();
       return this.state.years[yrStr];
     }
 
-    resetAll() {
+    async resetAll() {
       this.state = this.createInitialDemoState();
       try {
         localStorage.removeItem(GOAL_KEY);
@@ -358,8 +501,115 @@
     }
   }
 
+  /**
+   * GitHubDataProvider Implementation (Live GitHub API Integration)
+   */
+  class GitHubDataProvider extends DataProvider {
+    constructor() {
+      super();
+      this.cache = {};
+      this.userProfile = null;
+      this.lastSyncTime = null;
+    }
+
+    async checkAuth() {
+      try {
+        const res = await fetch('/api/auth/github/me', { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) return { authenticated: false };
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          this.userProfile = data.user;
+          return { authenticated: true, user: data.user };
+        }
+        return { authenticated: false };
+      } catch (err) {
+        console.warn('GitHub auth check offline or serverless not available:', err);
+        return { authenticated: false };
+      }
+    }
+
+    async getYearData(year) {
+      const yrStr = String(year);
+      if (this.cache[yrStr]) {
+        return this.cache[yrStr];
+      }
+
+      try {
+        const res = await fetch(`/api/github/contributions?year=${yrStr}`);
+        if (!res.ok) {
+          throw new Error(`GitHub API returned status ${res.status}`);
+        }
+        const data = await res.json();
+        if (data.success && data.days) {
+          this.cache[yrStr] = data.days;
+          this.lastSyncTime = new Date();
+          return data.days;
+        }
+        throw new Error(data.message || 'Failed to parse GitHub contribution data');
+      } catch (err) {
+        console.error('Error fetching live GitHub contributions:', err);
+        showToast('Unable to fetch live GitHub contributions. Falling back to local data.', 'warning');
+        return {};
+      }
+    }
+
+    async getRepositories() {
+      try {
+        const res = await fetch('/api/github/repositories');
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.success && Array.isArray(data.repositories) ? data.repositories : [];
+      } catch (err) {
+        console.warn('Error fetching live repositories:', err);
+        return [];
+      }
+    }
+
+    async getRecentActivity() {
+      try {
+        const res = await fetch('/api/github/activity');
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.success && Array.isArray(data.activities) ? data.activities : [];
+      } catch (err) {
+        console.warn('Error fetching live GitHub activity:', err);
+        return [];
+      }
+    }
+
+    async addActivity() {
+      showToast('You are in Live GitHub Mode. Your activity is synced with your live GitHub account.', 'info');
+      return null;
+    }
+
+    async updateActivity() {
+      showToast('You are in Live GitHub Mode. Modify contributions directly in your GitHub repositories.', 'info');
+      return null;
+    }
+
+    async deleteActivity() {
+      showToast('You are in Live GitHub Mode. Contributions are managed on GitHub.', 'info');
+      return false;
+    }
+
+    async generateDemo() {
+      showToast('Demo generator is disabled in Live GitHub Mode. Disconnect to customize demo data.', 'info');
+      return {};
+    }
+
+    async resetAll() {
+      this.cache = {};
+      showToast('Cleared cached GitHub data.', 'info');
+      return {};
+    }
+
+    clearCache() {
+      this.cache = {};
+    }
+  }
+
   // ==========================================================================
-  // 3. DEMO DATA GENERATOR WITH REALISTIC PATTERNS (Section 4 & 21)
+  // 4. DEMO DATA GENERATOR WITH REALISTIC PATTERNS (Section 4)
   // ==========================================================================
 
   function pseudoRandom(seed) {
@@ -395,12 +645,11 @@
       const currentDate = new Date(year, 0, 1 + dayIdx);
       const dateStr = formatDateToISO(currentDate);
 
-      // In 2026, don't generate contributions for future dates beyond October 7, 2026
       if (year === 2026 && currentDate > todaySim) {
         continue;
       }
 
-      const dayOfWeek = currentDate.getDay(); // 0 = Sun, 6 = Sat
+      const dayOfWeek = currentDate.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
       const seed = (year * 1000) + dayIdx * 7.13 + (dayOfWeek * 0.31);
@@ -487,7 +736,7 @@
   }
 
   // ==========================================================================
-  // 4. CALCULATION ENGINES: STATISTICS, STREAKS & CONSISTENCY (Sections 13, 14, 15)
+  // 5. CALCULATION ENGINES: STATISTICS, STREAKS & CONSISTENCY (Sections 13, 14, 15)
   // ==========================================================================
 
   function calculateStatistics(yearData, year, filterType = 'all', repoFilter = null) {
@@ -504,11 +753,10 @@
 
     let bestDay = { count: 0, date: null };
     const monthVolumes = new Array(12).fill(0);
-    const weekdayVolumes = new Array(7).fill(0); // 0 = Sun, 1 = Mon ...
-    const activeDatesSet = new Set();
+    const weekdayVolumes = new Array(7).fill(0);
     const repoSet = new Set();
 
-    Object.keys(yearData).forEach((dateStr) => {
+    Object.keys(yearData || {}).forEach((dateStr) => {
       const entry = yearData[dateStr];
       if (!entry) return;
 
@@ -517,22 +765,21 @@
       }
 
       let count = 0;
-      if (filterType === 'all') count = entry.total;
-      else if (filterType === 'commits') count = entry.commits;
-      else if (filterType === 'prs') count = entry.pullRequests;
-      else if (filterType === 'issues') count = entry.issues;
-      else if (filterType === 'reviews') count = entry.codeReviews;
+      if (filterType === 'all') count = entry.total || 0;
+      else if (filterType === 'commits') count = entry.commits || 0;
+      else if (filterType === 'prs') count = entry.pullRequests || 0;
+      else if (filterType === 'issues') count = entry.issues || 0;
+      else if (filterType === 'reviews') count = entry.codeReviews || 0;
 
       if (count > 0) {
         totalContributions += count;
-        totalCommits += entry.commits;
-        totalPRs += entry.pullRequests;
-        totalIssues += entry.issues;
-        totalReviews += entry.codeReviews;
+        totalCommits += (entry.commits || 0);
+        totalPRs += (entry.pullRequests || 0);
+        totalIssues += (entry.issues || 0);
+        totalReviews += (entry.codeReviews || 0);
         activeDays++;
-        activeDatesSet.add(dateStr);
 
-        entry.repositories.forEach((r) => repoSet.add(r));
+        (entry.repositories || []).forEach((r) => repoSet.add(r));
 
         const d = parseISODate(dateStr);
         const month = d.getMonth();
@@ -611,7 +858,7 @@
       consistencyScore: consistency.score,
       consistencyDesc: consistency.description,
       weekendContributions,
-      activeReposCount: repoSet.size || DEMO_REPOSITORIES.length,
+      activeReposCount: repoSet.size || (appState.mode === 'live' ? 0 : DEMO_REPOSITORIES.length),
       monthVolumes,
       weekdayVolumes
     };
@@ -622,7 +869,7 @@
     const totalDays = isLeap ? 366 : 365;
 
     function isDayActive(dateStr) {
-      const entry = yearData[dateStr];
+      const entry = (yearData || {})[dateStr];
       if (!entry) return false;
       if (repoFilter && !entry.repositories.includes(repoFilter)) return false;
       if (filterType === 'all') return entry.total > 0;
@@ -748,29 +995,36 @@
   }
 
   // ==========================================================================
-  // 5. APPLICATION STATE
+  // 6. APPLICATION STATE
   // ==========================================================================
 
-  const dataProvider = new DemoDataProvider();
+  const demoProvider = new DemoDataProvider();
+  const githubProvider = new GitHubDataProvider();
 
   const appState = {
+    mode: 'demo', // 'demo' or 'live'
+    currentProvider: demoProvider,
+    authenticatedUser: null,
     selectedYear: 2026,
     activeFilter: 'all',
     activeRepoFilter: null,
     currentTheme: 'dark',
-    weeklyGoal: dataProvider.getWeeklyGoal(),
+    weeklyGoal: demoProvider.getWeeklyGoal(),
     selectedDate: null,
-    activeModal: null
+    activeModal: null,
+    cachedLiveRepos: [],
+    cachedLiveActivities: []
   };
 
   // ==========================================================================
-  // 6. RENDERERS: HEATMAP, CHARTS, METRICS & FEEDS
+  // 7. RENDERERS: HEATMAP, CHARTS, METRICS & FEEDS
   // ==========================================================================
 
-  function renderAll() {
-    const yearData = dataProvider.getYearData(appState.selectedYear);
+  async function renderAll() {
+    const yearData = await appState.currentProvider.getYearData(appState.selectedYear);
     const stats = calculateStatistics(yearData, appState.selectedYear, appState.activeFilter, appState.activeRepoFilter);
 
+    renderModeAndAuthUI();
     renderProfileCard(stats);
     renderMetricCards(stats);
     renderContributionHeatmap(yearData, stats);
@@ -778,94 +1032,130 @@
     renderWeeklyGoal(yearData);
     renderMonthlyAnalytics(stats);
     renderContributionTrend(yearData);
-    renderRepositoryAnalytics(yearData);
-    renderRecentActivity(yearData);
+    await renderRepositoryAnalytics(yearData);
+    await renderRecentActivity(yearData);
     renderAchievements(stats);
     renderRepoFilterBadge();
   }
 
-  function renderProfileCard(stats) {
-    const totalEl = document.getElementById('prof-total-contributions');
-    const yearEl = document.getElementById('prof-year-label');
-    const curStreakEl = document.getElementById('prof-current-streak');
-    const longStreakEl = document.getElementById('prof-longest-streak');
-    const activeDaysEl = document.getElementById('prof-active-days');
-    const activePctEl = document.getElementById('prof-active-pct');
+  function renderModeAndAuthUI() {
+    if (appState.mode === 'live' && appState.authenticatedUser) {
+      // Live Mode
+      if (DOM.dashboardModeBadge) {
+        DOM.dashboardModeBadge.className = 'mode-badge live-mode';
+      }
+      setText(DOM.modeTitleText, 'Live GitHub Data');
+      setText(DOM.modeDescText, `Connected as @${appState.authenticatedUser.login}`);
+      setText(DOM.heatmapModeTag, 'LIVE GITHUB');
+      setText(DOM.statReposSub, 'Connected repositories');
 
-    if (totalEl) totalEl.textContent = stats.totalContributions.toLocaleString();
-    if (yearEl) yearEl.textContent = `${appState.selectedYear} Activity (${appState.activeFilter.toUpperCase()})`;
-    if (curStreakEl) curStreakEl.textContent = `${stats.currentStreak} ${stats.currentStreak === 1 ? 'day' : 'days'}`;
-    if (longStreakEl) longStreakEl.textContent = `${stats.longestStreak} ${stats.longestStreak === 1 ? 'day' : 'days'}`;
-    if (activeDaysEl) activeDaysEl.textContent = stats.activeDays.toLocaleString();
-    if (activePctEl) activePctEl.textContent = `${stats.activePct}% of year`;
+      if (DOM.btnConnectGithub) DOM.btnConnectGithub.style.display = 'none';
+      if (DOM.userConnectedBadge) DOM.userConnectedBadge.style.display = 'inline-flex';
+      if (DOM.headerUserAvatar) DOM.headerUserAvatar.src = appState.authenticatedUser.avatar_url || '';
+      setText(DOM.headerUserName, `@${appState.authenticatedUser.login}`);
+    } else {
+      // Demo Mode
+      if (DOM.dashboardModeBadge) {
+        DOM.dashboardModeBadge.className = 'mode-badge demo-mode';
+      }
+      setText(DOM.modeTitleText, 'Demo Data');
+      setText(DOM.modeDescText, 'Local-first browser simulation. Not connected to external GitHub accounts.');
+      setText(DOM.heatmapModeTag, 'DEMO DATA');
+      setText(DOM.statReposSub, 'Demo projects');
+
+      if (DOM.btnConnectGithub) DOM.btnConnectGithub.style.display = 'inline-flex';
+      if (DOM.userConnectedBadge) DOM.userConnectedBadge.style.display = 'none';
+    }
+  }
+
+  function renderProfileCard(stats) {
+    if (appState.mode === 'live' && appState.authenticatedUser) {
+      const u = appState.authenticatedUser;
+      setText(DOM.profUserName, u.name || u.login);
+      setText(DOM.profUserRole, `@${u.login} • GitHub Contributor`);
+      setText(DOM.profUserBio, u.bio || 'Active developer visualizing contributions on GitHub Green Squares.');
+
+      if (DOM.profAvatarImg) {
+        DOM.profAvatarImg.src = u.avatar_url;
+        DOM.profAvatarImg.style.display = 'block';
+      }
+      if (DOM.profAvatarFallback) DOM.profAvatarFallback.style.display = 'none';
+
+      setText(DOM.profStatusLabel, 'Live Connected');
+      if (DOM.profStatusPill) DOM.profStatusPill.className = 'profile-status-badge status-live';
+
+      if (DOM.profGithubMeta) DOM.profGithubMeta.style.display = 'flex';
+      setText(DOM.profGhRepos, `${u.public_repos} Public Repos`);
+      setText(DOM.profGhFollowers, `${u.followers} Followers`);
+      setText(DOM.profGhFollowing, `${u.following} Following`);
+      if (DOM.profGithubLink) {
+        DOM.profGithubLink.href = u.html_url || `https://github.com/${u.login}`;
+        DOM.profGithubLink.style.display = 'inline-flex';
+      }
+    } else {
+      setText(DOM.profUserName, 'Soman Singhal');
+      setText(DOM.profUserRole, 'Developer Analytics Dashboard • Full-Stack Contributor');
+      setText(DOM.profUserBio, 'Visualizing commits, pull requests, issues, and code reviews across demo repositories.');
+
+      if (DOM.profAvatarImg) DOM.profAvatarImg.style.display = 'none';
+      if (DOM.profAvatarFallback) DOM.profAvatarFallback.style.display = 'flex';
+      setText(DOM.profAvatarInitials, 'SS');
+
+      setText(DOM.profStatusLabel, 'Demo Dataset');
+      if (DOM.profStatusPill) DOM.profStatusPill.className = 'profile-status-badge';
+
+      if (DOM.profGithubMeta) DOM.profGithubMeta.style.display = 'none';
+      if (DOM.profGithubLink) DOM.profGithubLink.style.display = 'none';
+    }
+
+    setText(DOM.profTotalContrib, stats.totalContributions.toLocaleString());
+    setText(DOM.profYearLabel, `${appState.selectedYear} Activity (${appState.activeFilter.toUpperCase()})`);
+    setText(DOM.profCurrentStreak, `${stats.currentStreak} ${stats.currentStreak === 1 ? 'day' : 'days'}`);
+    setText(DOM.profLongestStreak, `${stats.longestStreak} ${stats.longestStreak === 1 ? 'day' : 'days'}`);
+    setText(DOM.profActiveDays, stats.activeDays.toLocaleString());
+    setText(DOM.profActivePct, `${stats.activePct}% of year`);
   }
 
   function renderMetricCards(stats) {
-    const avgEl = document.getElementById('stat-avg-contributions');
-    const curStreakEl = document.getElementById('stat-current-streak');
-    const streakMsgEl = document.getElementById('stat-streak-msg');
-    const longStreakEl = document.getElementById('stat-longest-streak');
-    const bestMonthEl = document.getElementById('stat-best-month');
-    const bestMonthVolEl = document.getElementById('stat-best-month-vol');
-    const bestDayEl = document.getElementById('stat-best-day');
-    const bestDayDateEl = document.getElementById('stat-best-day-date');
-    const bestWeekdayEl = document.getElementById('stat-best-weekday');
-    const bestWeekdayVolEl = document.getElementById('stat-best-weekday-vol');
-    const scoreEl = document.getElementById('stat-consistency-score');
-    const scoreDescEl = document.getElementById('stat-consistency-desc');
-    const reposEl = document.getElementById('stat-active-repos');
-
-    if (avgEl) avgEl.textContent = stats.avgPerActiveDay;
-    if (curStreakEl) curStreakEl.textContent = `${stats.currentStreak} ${stats.currentStreak === 1 ? 'day' : 'days'}`;
-    if (streakMsgEl) {
-      if (stats.currentStreak >= 14) streakMsgEl.textContent = 'Unstoppable momentum 🔥';
-      else if (stats.currentStreak >= 7) streakMsgEl.textContent = 'Weekly streak active 🔥';
-      else if (stats.currentStreak >= 3) streakMsgEl.textContent = 'Building consistency ✨';
-      else if (stats.currentStreak > 0) streakMsgEl.textContent = 'Streak started 🌱';
-      else streakMsgEl.textContent = 'Ready for your next commit';
+    setText(DOM.statAvgContrib, stats.avgPerActiveDay);
+    setText(DOM.statCurrentStreak, `${stats.currentStreak} ${stats.currentStreak === 1 ? 'day' : 'days'}`);
+    if (DOM.statStreakMsg) {
+      if (stats.currentStreak >= 14) DOM.statStreakMsg.textContent = 'Unstoppable momentum 🔥';
+      else if (stats.currentStreak >= 7) DOM.statStreakMsg.textContent = 'Weekly streak active 🔥';
+      else if (stats.currentStreak >= 3) DOM.statStreakMsg.textContent = 'Building consistency ✨';
+      else if (stats.currentStreak > 0) DOM.statStreakMsg.textContent = 'Streak started 🌱';
+      else DOM.statStreakMsg.textContent = 'Ready for your next commit';
     }
-    if (longStreakEl) longStreakEl.textContent = `${stats.longestStreak} ${stats.longestStreak === 1 ? 'day' : 'days'}`;
-    if (bestMonthEl) bestMonthEl.textContent = stats.bestMonth;
-    if (bestMonthVolEl) bestMonthVolEl.textContent = `${stats.bestMonthVolume.toLocaleString()} contributions`;
-    if (bestDayEl) bestDayEl.textContent = `${stats.bestDayCount} contributions`;
-    if (bestDayDateEl) bestDayDateEl.textContent = stats.bestDayDate;
-    if (bestWeekdayEl) bestWeekdayEl.textContent = stats.bestWeekday;
-    if (bestWeekdayVolEl) bestWeekdayVolEl.textContent = `${stats.bestWeekdayVolume.toLocaleString()} contributions`;
-    if (scoreEl) scoreEl.textContent = `${stats.consistencyScore} / 100`;
-    if (scoreDescEl) scoreDescEl.textContent = stats.consistencyDesc;
-    if (reposEl) reposEl.textContent = stats.activeReposCount;
+    setText(DOM.statLongestStreak, `${stats.longestStreak} ${stats.longestStreak === 1 ? 'day' : 'days'}`);
+    setText(DOM.statBestMonth, stats.bestMonth);
+    setText(DOM.statBestMonthVol, `${stats.bestMonthVolume.toLocaleString()} contributions`);
+    setText(DOM.statBestDay, `${stats.bestDayCount} contributions`);
+    setText(DOM.statBestDayDate, stats.bestDayDate);
+    setText(DOM.statBestWeekday, stats.bestWeekday);
+    setText(DOM.statBestWeekdayVol, `${stats.bestWeekdayVolume.toLocaleString()} contributions`);
+    setText(DOM.statConsistencyScore, `${stats.consistencyScore} / 100`);
+    setText(DOM.statConsistencyDesc, stats.consistencyDesc);
+    setText(DOM.statActiveRepos, stats.activeReposCount);
   }
 
-  /**
-   * Render GitHub-style 365-day Contribution Heatmap (Sections 7 & 8)
-   * Uses exact styling classes from style.css:
-   * .heatmap-months-row, .heatmap-month-label, .heatmap-body,
-   * .heatmap-days-col, .heatmap-day-label, .heatmap-weeks-container,
-   * .heatmap-week-col, .contrib-cell, .level-0 through .level-4, .empty-cell
-   */
   function renderContributionHeatmap(yearData, stats) {
-    const calendarEl = document.getElementById('heatmap-calendar');
-    if (!calendarEl) return;
-
-    calendarEl.innerHTML = '';
+    if (!DOM.heatmapCalendar) return;
+    DOM.heatmapCalendar.innerHTML = '';
 
     const year = appState.selectedYear;
     const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
     const totalDays = isLeap ? 366 : 365;
 
     const jan1 = new Date(year, 0, 1);
-    const startDayOfWeek = jan1.getDay(); // 0 = Sun, 6 = Sat
+    const startDayOfWeek = jan1.getDay();
     const totalWeeks = Math.ceil((totalDays + startDayOfWeek) / 7);
 
-    // 1. Months Label Row along the top
+    // Month headers
     const monthsRow = document.createElement('div');
     monthsRow.className = 'heatmap-months-row';
-
-    // Blank spacer for weekday column
     const monthSpacer = document.createElement('div');
     monthsRow.appendChild(monthSpacer);
 
-    // Compute week index where each month starts
     const monthStartWeeks = new Array(12).fill(-1);
     for (let m = 0; m < 12; m++) {
       const firstOfMonth = new Date(year, m, 1);
@@ -885,13 +1175,13 @@
         lastRenderedCol = w;
       }
     }
-    calendarEl.appendChild(monthsRow);
+    DOM.heatmapCalendar.appendChild(monthsRow);
 
-    // 2. Heatmap Body: Weekday labels column + Weeks container
+    // Heatmap body
     const heatmapBody = document.createElement('div');
     heatmapBody.className = 'heatmap-body';
 
-    // Weekdays label column (Mon, Wed, Fri)
+    // Weekdays column (Mon, Wed, Fri)
     const daysCol = document.createElement('div');
     daysCol.className = 'heatmap-days-col';
     const dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
@@ -903,7 +1193,6 @@
     });
     heatmapBody.appendChild(daysCol);
 
-    // Weeks Container
     const weeksContainer = document.createElement('div');
     weeksContainer.className = 'heatmap-weeks-container';
 
@@ -925,7 +1214,7 @@
 
         const currentDate = new Date(year, 0, 1 + currentDayIdx);
         const dateStr = formatDateToISO(currentDate);
-        const entry = yearData[dateStr] || null;
+        const entry = (yearData || {})[dateStr] || null;
 
         let count = 0;
         let commits = 0;
@@ -935,16 +1224,16 @@
         let repos = [];
 
         if (entry) {
-          commits = entry.commits;
-          prs = entry.pullRequests;
-          issues = entry.issues;
-          reviews = entry.codeReviews;
-          repos = entry.repositories;
+          commits = entry.commits || 0;
+          prs = entry.pullRequests || 0;
+          issues = entry.issues || 0;
+          reviews = entry.codeReviews || 0;
+          repos = entry.repositories || [];
 
           if (appState.activeRepoFilter && !repos.includes(appState.activeRepoFilter)) {
             count = 0;
           } else {
-            if (appState.activeFilter === 'all') count = entry.total;
+            if (appState.activeFilter === 'all') count = entry.total || 0;
             else if (appState.activeFilter === 'commits') count = commits;
             else if (appState.activeFilter === 'prs') count = prs;
             else if (appState.activeFilter === 'issues') count = issues;
@@ -1008,7 +1297,7 @@
     }
 
     heatmapBody.appendChild(weeksContainer);
-    calendarEl.appendChild(heatmapBody);
+    DOM.heatmapCalendar.appendChild(heatmapBody);
   }
 
   function getIntensityLevel(count) {
@@ -1019,18 +1308,9 @@
     return 4;
   }
 
-  /**
-   * Render Weekly Analytics (Section 16: Mon -> Sun)
-   * Uses exact styling classes from style.css:
-   * .weekly-col-wrap, .bar-val-badge, .bar-groove, .bar-stem, .bar-name-label
-   */
   function renderWeeklyAnalytics(stats) {
-    const chartEl = document.getElementById('weekly-analytics-chart');
-    const peakInfoEl = document.getElementById('weekly-peak-info');
-    const avgInfoEl = document.getElementById('weekly-avg-info');
-    if (!chartEl) return;
-
-    chartEl.innerHTML = '';
+    if (!DOM.weeklyAnalyticsChart) return;
+    DOM.weeklyAnalyticsChart.innerHTML = '';
 
     const dayIndices = [1, 2, 3, 4, 5, 6, 0];
     const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -1044,8 +1324,8 @@
     });
 
     const dailyAvg = (totalVol / 7).toFixed(1);
-    if (peakInfoEl) peakInfoEl.innerHTML = `Peak: <strong>${stats.bestWeekday}</strong>`;
-    if (avgInfoEl) avgInfoEl.innerHTML = `Daily Average: <strong>${dailyAvg} contributions</strong>`;
+    setHTML(DOM.weeklyPeakInfo, `Peak: <strong>${stats.bestWeekday}</strong>`);
+    setHTML(DOM.weeklyAvgInfo, `Daily Average: <strong>${dailyAvg} contributions</strong>`);
 
     dayIndices.forEach((dayIdx, i) => {
       const vol = stats.weekdayVolumes[dayIdx] || 0;
@@ -1073,28 +1353,15 @@
       });
       colWrap.addEventListener('blur', hideHeatmapTooltip);
 
-      chartEl.appendChild(colWrap);
+      DOM.weeklyAnalyticsChart.appendChild(colWrap);
     });
   }
 
-  /**
-   * Render Weekly Goal Tracker (Section 24)
-   */
   function renderWeeklyGoal(yearData) {
-    const targetInput = document.getElementById('goal-target-input');
-    const settingsInput = document.getElementById('settings-goal-input');
-    const targetDisplay = document.getElementById('goal-target-display');
-    const currentDisplay = document.getElementById('goal-current-display');
-    const percentDisplay = document.getElementById('goal-percent-display');
-    const progressFill = document.getElementById('goal-progress-fill');
-    const progressBar = document.getElementById('goal-progress-bar');
-    const statusIcon = document.getElementById('goal-status-icon');
-    const statusText = document.getElementById('goal-status-text');
-
     const target = appState.weeklyGoal;
-    if (targetInput) targetInput.value = target;
-    if (settingsInput) settingsInput.value = target;
-    if (targetDisplay) targetDisplay.textContent = target;
+    setVal(DOM.goalTargetInput, target);
+    setVal(DOM.settingsGoalInput, target);
+    setText(DOM.goalTargetDisplay, target);
 
     const refDate = appState.selectedYear === 2026 ? new Date('2026-10-07T00:00:00') : new Date(appState.selectedYear, 11, 28);
     const dayOfWeek = refDate.getDay();
@@ -1108,55 +1375,46 @@
       const d = new Date(monday);
       d.setDate(d.getDate() + i);
       const iso = formatDateToISO(d);
-      const entry = yearData[iso];
+      const entry = (yearData || {})[iso];
       if (entry) {
-        if (appState.activeFilter === 'all') loggedThisWeek += entry.total;
-        else if (appState.activeFilter === 'commits') loggedThisWeek += entry.commits;
-        else if (appState.activeFilter === 'prs') loggedThisWeek += entry.pullRequests;
-        else if (appState.activeFilter === 'issues') loggedThisWeek += entry.issues;
-        else if (appState.activeFilter === 'reviews') loggedThisWeek += entry.codeReviews;
+        if (appState.activeFilter === 'all') loggedThisWeek += (entry.total || 0);
+        else if (appState.activeFilter === 'commits') loggedThisWeek += (entry.commits || 0);
+        else if (appState.activeFilter === 'prs') loggedThisWeek += (entry.pullRequests || 0);
+        else if (appState.activeFilter === 'issues') loggedThisWeek += (entry.issues || 0);
+        else if (appState.activeFilter === 'reviews') loggedThisWeek += (entry.codeReviews || 0);
       }
     }
 
     const pct = Math.min(100, Math.round((loggedThisWeek / target) * 100));
 
-    if (currentDisplay) currentDisplay.textContent = loggedThisWeek;
-    if (percentDisplay) percentDisplay.textContent = `${pct}%`;
-    if (progressFill) progressFill.style.width = `${pct}%`;
-    if (progressBar) progressBar.setAttribute('aria-valuenow', String(pct));
+    setText(DOM.goalCurrentDisplay, loggedThisWeek);
+    setText(DOM.goalPercentDisplay, `${pct}%`);
+    if (DOM.goalProgressFill) DOM.goalProgressFill.style.width = `${pct}%`;
+    if (DOM.goalProgressBar) DOM.goalProgressBar.setAttribute('aria-valuenow', String(pct));
 
-    if (statusIcon && statusText) {
+    if (DOM.goalStatusIcon && DOM.goalStatusText) {
       if (pct >= 100) {
-        statusIcon.textContent = '🎉';
-        statusText.textContent = `Weekly goal completed! (+${loggedThisWeek - target} surplus)`;
+        DOM.goalStatusIcon.textContent = '🎉';
+        DOM.goalStatusText.textContent = `Weekly goal completed! (+${loggedThisWeek - target} surplus)`;
       } else {
         const remaining = target - loggedThisWeek;
-        statusIcon.textContent = '⏳';
-        statusText.textContent = `${remaining} more contributions needed to hit your weekly goal`;
+        DOM.goalStatusIcon.textContent = '⏳';
+        DOM.goalStatusText.textContent = `${remaining} more contributions needed to hit your weekly goal`;
       }
     }
   }
 
-  /**
-   * Render Monthly Analytics (Section 17: Jan -> Dec)
-   * Uses exact styling classes from style.css:
-   * .month-col-wrap, .bar-val-badge, .bar-groove, .bar-stem, .bar-name-label
-   */
   function renderMonthlyAnalytics(stats) {
-    const chartEl = document.getElementById('monthly-analytics-chart');
-    const bestInfoEl = document.getElementById('monthly-best-info');
-    const totalInfoEl = document.getElementById('monthly-total-info');
-    if (!chartEl) return;
-
-    chartEl.innerHTML = '';
+    if (!DOM.monthlyAnalyticsChart) return;
+    DOM.monthlyAnalyticsChart.innerHTML = '';
 
     let maxVol = 0;
     stats.monthVolumes.forEach((v) => {
       if (v > maxVol) maxVol = v;
     });
 
-    if (bestInfoEl) bestInfoEl.innerHTML = `Most Active Month: <strong>${stats.bestMonth} (${stats.bestMonthVolume.toLocaleString()})</strong>`;
-    if (totalInfoEl) totalInfoEl.innerHTML = `Year Total: <strong>${stats.totalContributions.toLocaleString()} contributions</strong>`;
+    setHTML(DOM.monthlyBestInfo, `Most Active Month: <strong>${stats.bestMonth} (${stats.bestMonthVolume.toLocaleString()})</strong>`);
+    setHTML(DOM.monthlyTotalInfo, `Year Total: <strong>${stats.totalContributions.toLocaleString()} contributions</strong>`);
 
     stats.monthVolumes.forEach((vol, mIdx) => {
       const pct = maxVol > 0 ? Math.max(5, Math.round((vol / maxVol) * 100)) : 5;
@@ -1183,22 +1441,13 @@
       });
       colWrap.addEventListener('blur', hideHeatmapTooltip);
 
-      chartEl.appendChild(colWrap);
+      DOM.monthlyAnalyticsChart.appendChild(colWrap);
     });
   }
 
-  /**
-   * Render Contribution Trend (Section 18: Dynamic Vector SVG Curve & Area)
-   * Uses exact styling classes from style.css:
-   * .trend-svg, .trend-dot, #trendGradient
-   */
   function renderContributionTrend(yearData) {
-    const container = document.getElementById('trend-chart-container');
-    const peakPeriodEl = document.getElementById('trend-peak-period');
-    const velocityEl = document.getElementById('trend-velocity-label');
-    if (!container) return;
-
-    container.innerHTML = '';
+    if (!DOM.trendChartContainer) return;
+    DOM.trendChartContainer.innerHTML = '';
 
     const pointsCount = 24;
     const year = appState.selectedYear;
@@ -1220,13 +1469,13 @@
         const curDate = new Date(year, 0, 1 + d);
         if (year === 2026 && curDate > new Date('2026-10-07T00:00:00')) continue;
         const iso = formatDateToISO(curDate);
-        const entry = yearData[iso];
+        const entry = (yearData || {})[iso];
         if (entry) {
-          if (appState.activeFilter === 'all') periodVol += entry.total;
-          else if (appState.activeFilter === 'commits') periodVol += entry.commits;
-          else if (appState.activeFilter === 'prs') periodVol += entry.pullRequests;
-          else if (appState.activeFilter === 'issues') periodVol += entry.issues;
-          else if (appState.activeFilter === 'reviews') periodVol += entry.codeReviews;
+          if (appState.activeFilter === 'all') periodVol += (entry.total || 0);
+          else if (appState.activeFilter === 'commits') periodVol += (entry.commits || 0);
+          else if (appState.activeFilter === 'prs') periodVol += (entry.pullRequests || 0);
+          else if (appState.activeFilter === 'issues') periodVol += (entry.issues || 0);
+          else if (appState.activeFilter === 'reviews') periodVol += (entry.codeReviews || 0);
         }
       }
 
@@ -1241,11 +1490,10 @@
       }
     }
 
-    if (peakPeriodEl) peakPeriodEl.textContent = peakLabel || 'Consistent pace';
-
+    setText(DOM.trendPeakPeriod, peakLabel || 'Consistent pace');
     const sum = values.reduce((a, b) => a + b, 0);
     const weeklyVelocity = (sum / 52).toFixed(1);
-    if (velocityEl) velocityEl.textContent = `~${weeklyVelocity} / week avg`;
+    setText(DOM.trendVelocityLabel, `~${weeklyVelocity} / week avg`);
 
     const svgWidth = 600;
     const svgHeight = 150;
@@ -1335,52 +1583,63 @@
       svg.appendChild(circle);
     });
 
-    container.appendChild(svg);
+    DOM.trendChartContainer.appendChild(svg);
   }
 
-  /**
-   * Render Repository Analytics (Section 22)
-   * Uses exact styling classes from style.css:
-   * .repo-entry-card, .repo-entry-left, .repo-entry-icon, .repo-entry-name,
-   * .repo-entry-sub, .repo-entry-right, .repo-pct-bar-wrap, .repo-pct-bar-fill, .repo-pct-text
-   */
-  function renderRepositoryAnalytics(yearData) {
-    const listEl = document.getElementById('repo-analytics-list');
-    if (!listEl) return;
+  async function renderRepositoryAnalytics(yearData) {
+    if (!DOM.repoAnalyticsList) return;
+    DOM.repoAnalyticsList.innerHTML = '';
 
-    listEl.innerHTML = '';
+    let repoList = [];
 
-    const repoStats = {};
-    DEMO_REPOSITORIES.forEach((name) => {
-      repoStats[name] = {
-        name,
-        contributions: 0,
-        activeDays: 0,
-        lastDate: null
-      };
-    });
-
-    let overallTotal = 0;
-
-    Object.keys(yearData).sort().forEach((dateStr) => {
-      const entry = yearData[dateStr];
-      if (!entry) return;
-
-      entry.repositories.forEach((repoName) => {
-        if (!repoStats[repoName]) {
-          repoStats[repoName] = { name: repoName, contributions: 0, activeDays: 0, lastDate: null };
-        }
-        repoStats[repoName].contributions += entry.total;
-        repoStats[repoName].activeDays += 1;
-        repoStats[repoName].lastDate = dateStr;
-        overallTotal += entry.total;
+    if (appState.mode === 'live' && appState.currentProvider instanceof GitHubDataProvider) {
+      if (!appState.cachedLiveRepos || appState.cachedLiveRepos.length === 0) {
+        appState.cachedLiveRepos = await appState.currentProvider.getRepositories();
+      }
+      repoList = (appState.cachedLiveRepos || []).map((r) => ({
+        name: r.name,
+        contributions: r.stars || 1,
+        activeDays: 1,
+        lastDate: r.updated_at ? r.updated_at.split('T')[0] : null,
+        url: r.html_url,
+        lang: r.language
+      }));
+    } else {
+      const repoStats = {};
+      DEMO_REPOSITORIES.forEach((name) => {
+        repoStats[name] = {
+          name,
+          contributions: 0,
+          activeDays: 0,
+          lastDate: null,
+          url: `https://github.com/somansinghal/${name}`,
+          lang: 'TypeScript'
+        };
       });
-    });
 
-    const repoList = Object.values(repoStats).sort((a, b) => b.contributions - a.contributions);
+      let overallTotal = 0;
+      Object.keys(yearData || {}).sort().forEach((dateStr) => {
+        const entry = yearData[dateStr];
+        if (!entry) return;
+
+        (entry.repositories || []).forEach((repoName) => {
+          if (!repoStats[repoName]) {
+            repoStats[repoName] = { name: repoName, contributions: 0, activeDays: 0, lastDate: null, url: `https://github.com/somansinghal/${repoName}`, lang: 'TypeScript' };
+          }
+          repoStats[repoName].contributions += (entry.total || 0);
+          repoStats[repoName].activeDays += 1;
+          repoStats[repoName].lastDate = dateStr;
+          overallTotal += (entry.total || 0);
+        });
+      });
+
+      repoList = Object.values(repoStats).sort((a, b) => b.contributions - a.contributions);
+    }
+
+    const totalVolume = repoList.reduce((acc, r) => acc + r.contributions, 0) || 1;
 
     repoList.forEach((repo) => {
-      const pct = overallTotal > 0 ? Math.round((repo.contributions / overallTotal) * 100) : 0;
+      const pct = Math.round((repo.contributions / totalVolume) * 100);
       const isSelected = appState.activeRepoFilter === repo.name;
 
       const item = document.createElement('div');
@@ -1394,8 +1653,8 @@
         <div class="repo-entry-left">
           <span class="repo-entry-icon">📦</span>
           <div>
-            <div class="repo-entry-name">${repo.name}</div>
-            <div class="repo-entry-sub">${repo.activeDays} active days &bull; Last: ${repo.lastDate ? formatFriendlyDate(repo.lastDate) : 'None'}</div>
+            <div class="repo-entry-name">${escapeHtml(repo.name)}</div>
+            <div class="repo-entry-sub">${repo.activeDays} active days • Last: ${repo.lastDate ? formatFriendlyDate(repo.lastDate) : 'None'}</div>
           </div>
         </div>
         <div class="repo-entry-right">
@@ -1418,37 +1677,76 @@
         }
       });
 
-      listEl.appendChild(item);
+      DOM.repoAnalyticsList.appendChild(item);
     });
   }
 
-  /**
-   * Render Recent Activity Feed (Section 23)
-   * Uses exact styling classes from style.css:
-   * .feed-item, .feed-marker, .feed-content, .feed-header-line,
-   * .feed-action, .feed-date, .feed-repo, .feed-msg
-   */
-  function renderRecentActivity(yearData) {
-    const feedEl = document.getElementById('recent-activity-feed');
-    const countBadge = document.getElementById('activity-stream-count');
-    if (!feedEl) return;
+  async function renderRecentActivity(yearData) {
+    if (!DOM.recentActivityFeed) return;
+    DOM.recentActivityFeed.innerHTML = '';
 
-    feedEl.innerHTML = '';
+    if (appState.mode === 'live' && appState.currentProvider instanceof GitHubDataProvider) {
+      if (!appState.cachedLiveActivities || appState.cachedLiveActivities.length === 0) {
+        appState.cachedLiveActivities = await appState.currentProvider.getRecentActivity();
+      }
 
-    const sortedDates = Object.keys(yearData)
+      const activities = appState.cachedLiveActivities || [];
+      setText(DOM.activityStreamCount, `${activities.length} live events`);
+
+      if (activities.length === 0) {
+        DOM.recentActivityFeed.innerHTML = `
+          <div class="card-panel text-center" style="padding: 24px;">
+            <span style="font-size: 2rem;">📭</span>
+            <h4 style="margin-top: 8px;">No Recent Public Events</h4>
+            <p class="panel-subtext">No public events returned for this account.</p>
+          </div>
+        `;
+        return;
+      }
+
+      activities.slice(0, 15).forEach((evt) => {
+        const feedItem = document.createElement('div');
+        feedItem.className = 'feed-item';
+        feedItem.setAttribute('tabindex', '0');
+        feedItem.setAttribute('role', 'article');
+        feedItem.style.cursor = 'pointer';
+
+        feedItem.innerHTML = `
+          <div class="feed-marker">🟩</div>
+          <div class="feed-content">
+            <div class="feed-header-line">
+              <span class="feed-action">${evt.icon || '💻'} ${escapeHtml(evt.typeLabel || 'Activity')}</span>
+              <span class="feed-date">${formatFriendlyDate(evt.date)}</span>
+            </div>
+            <div class="feed-repo">${escapeHtml(evt.repository)}</div>
+            ${evt.message ? `<div class="feed-msg">"${escapeHtml(evt.message)}"</div>` : ''}
+          </div>
+        `;
+
+        feedItem.addEventListener('click', () => {
+          if (evt.url) window.open(evt.url, '_blank', 'noopener,noreferrer');
+        });
+
+        DOM.recentActivityFeed.appendChild(feedItem);
+      });
+      return;
+    }
+
+    // Demo Mode Activity Feed
+    const sortedDates = Object.keys(yearData || {})
       .filter((dateStr) => {
         const e = yearData[dateStr];
-        if (!e || e.total <= 0) return false;
+        if (!e || (e.total || 0) <= 0) return false;
         if (appState.activeRepoFilter && !e.repositories.includes(appState.activeRepoFilter)) return false;
         return true;
       })
       .sort((a, b) => b.localeCompare(a));
 
     const displayDates = sortedDates.slice(0, 15);
-    if (countBadge) countBadge.textContent = `${sortedDates.length} recorded events`;
+    setText(DOM.activityStreamCount, `${sortedDates.length} recorded events`);
 
     if (displayDates.length === 0) {
-      feedEl.innerHTML = `
+      DOM.recentActivityFeed.innerHTML = `
         <div class="card-panel text-center" style="padding: 24px;">
           <span style="font-size: 2rem;">📭</span>
           <h4 style="margin-top: 8px;">No Activity Found</h4>
@@ -1477,10 +1775,10 @@
         <div class="feed-marker">🟩</div>
         <div class="feed-content">
           <div class="feed-header-line">
-            <span class="feed-action">${typeBadges.join(' &bull; ') || 'Activity'}</span>
+            <span class="feed-action">${typeBadges.join(' • ') || 'Activity'}</span>
             <span class="feed-date">${formatFriendlyDate(dateStr)}</span>
           </div>
-          <div class="feed-repo">${entry.primaryRepo || 'General'}</div>
+          <div class="feed-repo">${escapeHtml(entry.primaryRepo || 'General')}</div>
           ${entry.note ? `<div class="feed-msg">"${escapeHtml(entry.note)}"</div>` : ''}
         </div>
       `;
@@ -1496,22 +1794,13 @@
         }
       });
 
-      feedEl.appendChild(feedItem);
+      DOM.recentActivityFeed.appendChild(feedItem);
     });
   }
 
-  /**
-   * Render 10 System Achievements (Section 25)
-   * Uses exact styling classes from style.css:
-   * .achievement-card, .unlocked, .locked, .achieve-icon, .achieve-info,
-   * .achieve-title, .achieve-desc, .achieve-status-text
-   */
   function renderAchievements(stats) {
-    const gridEl = document.getElementById('achievements-grid');
-    const badgeEl = document.getElementById('achievements-tally-badge');
-    if (!gridEl) return;
-
-    gridEl.innerHTML = '';
+    if (!DOM.achievementsGrid) return;
+    DOM.achievementsGrid.innerHTML = '';
 
     let unlockedCount = 0;
 
@@ -1531,8 +1820,8 @@
       card.innerHTML = `
         <div class="achieve-icon">${achieve.icon}</div>
         <div class="achieve-info">
-          <div class="achieve-title">${achieve.name}</div>
-          <div class="achieve-desc">${achieve.desc}</div>
+          <div class="achieve-title">${escapeHtml(achieve.name)}</div>
+          <div class="achieve-desc">${escapeHtml(achieve.desc)}</div>
           <div class="achieve-status-text">${isUnlocked ? '✓ Unlocked' : currentText}</div>
           <div class="progress-track" style="height: 6px; margin: 6px 0 0 0;">
             <div class="progress-indicator" style="width: ${progressPct}%;"></div>
@@ -1551,34 +1840,28 @@
         }
       });
 
-      gridEl.appendChild(card);
+      DOM.achievementsGrid.appendChild(card);
     });
 
-    if (badgeEl) {
-      badgeEl.textContent = `${unlockedCount} / ${ACHIEVEMENTS_DEFINITIONS.length} Unlocked`;
-    }
+    setText(DOM.achievementsTallyBadge, `${unlockedCount} / ${ACHIEVEMENTS_DEFINITIONS.length} Unlocked`);
   }
 
   function renderRepoFilterBadge() {
-    const indicator = document.getElementById('repo-filter-indicator');
-    const activeText = document.getElementById('repo-filter-active-text');
-    const clearBtn = document.getElementById('btn-clear-repo-filter');
-
-    if (!indicator || !activeText || !clearBtn) return;
+    if (!DOM.repoFilterIndicator || !DOM.repoFilterActiveText || !DOM.btnClearRepoFilter) return;
 
     if (appState.activeRepoFilter) {
-      activeText.textContent = `Filtered: ${appState.activeRepoFilter}`;
-      clearBtn.style.display = 'inline-block';
+      DOM.repoFilterActiveText.textContent = `Filtered: ${appState.activeRepoFilter}`;
+      DOM.btnClearRepoFilter.style.display = 'inline-block';
     } else {
-      activeText.textContent = 'All Projects';
-      clearBtn.style.display = 'none';
+      DOM.repoFilterActiveText.textContent = 'All Projects';
+      DOM.btnClearRepoFilter.style.display = 'none';
     }
   }
 
   function toggleRepoFilter(repoName) {
     if (appState.activeRepoFilter === repoName) {
       appState.activeRepoFilter = null;
-      showToast(`Cleared repository filter`, 'info');
+      showToast('Cleared repository filter', 'info');
     } else {
       appState.activeRepoFilter = repoName;
       showToast(`Filtered by ${repoName}`, 'info');
@@ -1587,7 +1870,7 @@
   }
 
   // ==========================================================================
-  // 7. MODALS INFRASTRUCTURE & HANDLERS (Sections 9, 10, 11, 12, 21, 26, 29)
+  // 8. MODALS INFRASTRUCTURE & HANDLERS
   // ==========================================================================
 
   let lastActiveElement = null;
@@ -1634,8 +1917,13 @@
   }
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && appState.activeModal) {
-      closeModal(appState.activeModal);
+    if (e.key === 'Escape') {
+      if (appState.activeModal) {
+        closeModal(appState.activeModal);
+      }
+      if (DOM.mainNavList && DOM.mainNavList.classList.contains('mobile-open')) {
+        toggleMobileMenu(false);
+      }
     }
   });
 
@@ -1647,11 +1935,11 @@
     });
   });
 
-  function openDayDetailsModal(dateStr) {
+  async function openDayDetailsModal(dateStr) {
     appState.selectedDate = dateStr;
     const year = parseInt(dateStr.substring(0, 4), 10);
-    const yearData = dataProvider.getYearData(year);
-    const entry = yearData[dateStr] || {
+    const yearData = await appState.currentProvider.getYearData(year);
+    const entry = (yearData || {})[dateStr] || {
       date: dateStr,
       commits: 0,
       pullRequests: 0,
@@ -1663,27 +1951,19 @@
       note: ''
     };
 
-    const dateTitle = document.getElementById('day-modal-date');
-    const totalCount = document.getElementById('day-modal-total-count');
-    const commitsVal = document.getElementById('day-modal-commits');
-    const prsVal = document.getElementById('day-modal-prs');
-    const issuesVal = document.getElementById('day-modal-issues');
-    const reviewsVal = document.getElementById('day-modal-reviews');
+    setText(document.getElementById('day-modal-date'), formatFriendlyDate(dateStr));
+    setText(document.getElementById('day-modal-total-count'), `${entry.total || 0} Contributions`);
+    setText(document.getElementById('day-modal-commits'), entry.commits || 0);
+    setText(document.getElementById('day-modal-prs'), entry.pullRequests || 0);
+    setText(document.getElementById('day-modal-issues'), entry.issues || 0);
+    setText(document.getElementById('day-modal-reviews'), entry.codeReviews || 0);
+
     const reposWrap = document.getElementById('day-modal-repos');
-    const noteWrap = document.getElementById('day-modal-note-wrap');
-    const noteVal = document.getElementById('day-modal-note');
-
-    if (dateTitle) dateTitle.textContent = formatFriendlyDate(dateStr);
-    if (totalCount) totalCount.textContent = `${entry.total} Contributions`;
-    if (commitsVal) commitsVal.textContent = entry.commits;
-    if (prsVal) prsVal.textContent = entry.pullRequests;
-    if (issuesVal) issuesVal.textContent = entry.issues;
-    if (reviewsVal) reviewsVal.textContent = entry.codeReviews;
-
     if (reposWrap) {
       reposWrap.innerHTML = '';
-      if (entry.repositories && entry.repositories.length > 0) {
-        entry.repositories.forEach((r) => {
+      const repos = entry.repositories || [];
+      if (repos.length > 0) {
+        repos.forEach((r) => {
           const tag = document.createElement('span');
           tag.className = 'repo-tag';
           tag.textContent = r;
@@ -1697,6 +1977,8 @@
       }
     }
 
+    const noteWrap = document.getElementById('day-modal-note-wrap');
+    const noteVal = document.getElementById('day-modal-note');
     if (noteWrap && noteVal) {
       if (entry.note) {
         noteWrap.style.display = 'block';
@@ -1727,13 +2009,13 @@
     openModal('modal-add-activity');
   }
 
-  function openEditActivityModal(dateStr) {
+  async function openEditActivityModal(dateStr) {
     closeModal('modal-day-details');
     appState.selectedDate = dateStr;
 
     const year = parseInt(dateStr.substring(0, 4), 10);
-    const yearData = dataProvider.getYearData(year);
-    const entry = yearData[dateStr] || {
+    const yearData = await appState.currentProvider.getYearData(year);
+    const entry = (yearData || {})[dateStr] || {
       date: dateStr,
       commits: 0,
       pullRequests: 0,
@@ -1745,23 +2027,14 @@
       note: ''
     };
 
-    const hiddenDate = document.getElementById('edit-hidden-date');
-    const displayDate = document.getElementById('edit-display-date-text');
-    const repoSelect = document.getElementById('edit-input-repo');
-    const commitsInput = document.getElementById('edit-commits');
-    const prsInput = document.getElementById('edit-prs');
-    const issuesInput = document.getElementById('edit-issues');
-    const reviewsInput = document.getElementById('edit-reviews');
-    const noteInput = document.getElementById('edit-input-note');
-
-    if (hiddenDate) hiddenDate.value = dateStr;
-    if (displayDate) displayDate.textContent = formatFriendlyDate(dateStr);
-    if (repoSelect) repoSelect.value = entry.primaryRepo || DEMO_REPOSITORIES[0];
-    if (commitsInput) commitsInput.value = entry.commits;
-    if (prsInput) prsInput.value = entry.pullRequests;
-    if (issuesInput) issuesInput.value = entry.issues;
-    if (reviewsInput) reviewsInput.value = entry.codeReviews;
-    if (noteInput) noteInput.value = entry.note || '';
+    setVal(document.getElementById('edit-hidden-date'), dateStr);
+    setText(document.getElementById('edit-display-date-text'), formatFriendlyDate(dateStr));
+    setVal(document.getElementById('edit-input-repo'), entry.primaryRepo || DEMO_REPOSITORIES[0]);
+    setVal(document.getElementById('edit-commits'), entry.commits || 0);
+    setVal(document.getElementById('edit-prs'), entry.pullRequests || 0);
+    setVal(document.getElementById('edit-issues'), entry.issues || 0);
+    setVal(document.getElementById('edit-reviews'), entry.codeReviews || 0);
+    setVal(document.getElementById('edit-input-note'), entry.note || '');
 
     openModal('modal-edit-activity');
   }
@@ -1769,16 +2042,12 @@
   function openDeleteConfirmModal(dateStr) {
     closeModal('modal-day-details');
     appState.selectedDate = dateStr;
-
-    const dateTarget = document.getElementById('delete-target-date');
-    if (dateTarget) dateTarget.textContent = formatFriendlyDate(dateStr);
-
+    setText(document.getElementById('delete-target-date'), formatFriendlyDate(dateStr));
     openModal('modal-delete-confirm');
   }
 
   function openGenerateDemoModal() {
-    const yearTarget = document.getElementById('gen-target-year');
-    if (yearTarget) yearTarget.textContent = String(appState.selectedYear);
+    setText(document.getElementById('gen-target-year'), String(appState.selectedYear));
     openModal('modal-generate-demo');
   }
 
@@ -1786,38 +2055,42 @@
     openModal('modal-reset-confirm');
   }
 
-  function openAchievementDetailModal(achieve, isUnlocked, progressPct, currentText) {
-    const iconEl = document.getElementById('achieve-modal-icon');
-    const symbolEl = document.getElementById('achieve-modal-symbol');
-    const nameEl = document.getElementById('achieve-modal-name');
-    const badgeEl = document.getElementById('achieve-modal-badge');
-    const descEl = document.getElementById('achieve-modal-desc');
-    const progressTextEl = document.getElementById('achieve-modal-progress-text');
-    const progressFillEl = document.getElementById('achieve-modal-progress-fill');
+  function openImportModal() {
+    const fileInput = document.getElementById('import-file-input');
+    if (fileInput) fileInput.value = '';
+    const errBox = document.getElementById('err-import-file');
+    if (errBox) errBox.style.display = 'none';
+    const previewBox = document.getElementById('import-preview-box');
+    if (previewBox) previewBox.style.display = 'none';
+    openModal('modal-import-data');
+  }
 
-    if (iconEl) iconEl.textContent = achieve.icon;
-    if (symbolEl) symbolEl.textContent = achieve.icon;
-    if (nameEl) nameEl.textContent = achieve.name;
+  function openAchievementDetailModal(achieve, isUnlocked, progressPct, currentText) {
+    setText(document.getElementById('achieve-modal-icon'), achieve.icon);
+    setText(document.getElementById('achieve-modal-symbol'), achieve.icon);
+    setText(document.getElementById('achieve-modal-name'), achieve.name);
+
+    const badgeEl = document.getElementById('achieve-modal-badge');
     if (badgeEl) {
       badgeEl.textContent = isUnlocked ? 'Unlocked' : 'In Progress';
       badgeEl.className = `status-pill ${isUnlocked ? 'status-unlocked' : 'status-locked'}`;
     }
-    if (descEl) descEl.textContent = `${achieve.desc} Requirement: ${achieve.req}.`;
-    if (progressTextEl) progressTextEl.textContent = currentText;
-    if (progressFillEl) progressFillEl.style.width = `${progressPct}%`;
+
+    setText(document.getElementById('achieve-modal-desc'), `${achieve.desc} Requirement: ${achieve.req}.`);
+    setText(document.getElementById('achieve-modal-progress-text'), currentText);
+
+    const fill = document.getElementById('achieve-modal-progress-fill');
+    if (fill) fill.style.width = `${progressPct}%`;
 
     openModal('modal-achievement-detail');
   }
 
   // ==========================================================================
-  // 8. TOAST NOTIFICATION SYSTEM (Section 28)
-  // Uses exact styling classes from style.css:
-  // .toast, .show, .toast-error, .toast-warning, .toast-info, .toast-content, .toast-close-btn
+  // 9. TOAST NOTIFICATION SYSTEM (Section 28)
   // ==========================================================================
 
   function showToast(message, type = 'info', duration = 3500) {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
+    if (!DOM.toastContainer) return;
 
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -1845,9 +2118,8 @@
       });
     }
 
-    container.appendChild(toast);
+    DOM.toastContainer.appendChild(toast);
 
-    // Trigger transition
     requestAnimationFrame(() => {
       toast.classList.add('show');
     });
@@ -1873,39 +2145,36 @@
   }
 
   // ==========================================================================
-  // 9. TOOLTIP COMPONENT (HEATMAP & CHARTS)
-  // Uses exact styling classes from style.css: .app-tooltip
+  // 10. TOOLTIP COMPONENT (HEATMAP & CHARTS)
   // ==========================================================================
 
-  const tooltipEl = document.getElementById('app-tooltip');
-
   function showHeatmapTooltip(e, data) {
-    if (!tooltipEl) return;
+    if (!DOM.appTooltip) return;
 
-    tooltipEl.innerHTML = `
+    DOM.appTooltip.innerHTML = `
       <div style="font-weight: 700; margin-bottom: 2px;">${formatFriendlyDate(data.dateStr)}</div>
       <div style="color: var(--contrib-4); font-weight: 700;">${data.count} contribution${data.count === 1 ? '' : 's'}</div>
       <div style="font-size: 0.7rem; color: #8b949e; margin-top: 3px;">
-        ${data.commits} commits &bull; ${data.prs} PRs &bull; ${data.issues} issues &bull; ${data.reviews} reviews
+        ${data.commits} commits • ${data.prs} PRs • ${data.issues} issues • ${data.reviews} reviews
       </div>
       ${data.repos && data.repos.length > 0 ? `<div style="font-size: 0.68rem; color: #58a6ff; margin-top: 2px;">📁 ${data.repos.join(', ')}</div>` : ''}
     `;
 
     positionTooltip(e);
-    tooltipEl.style.display = 'block';
-    tooltipEl.setAttribute('aria-hidden', 'false');
+    DOM.appTooltip.style.display = 'block';
+    DOM.appTooltip.setAttribute('aria-hidden', 'false');
   }
 
   function showGenericTooltip(e, text) {
-    if (!tooltipEl) return;
-    tooltipEl.innerHTML = `<div>${escapeHtml(text)}</div>`;
+    if (!DOM.appTooltip) return;
+    DOM.appTooltip.innerHTML = `<div>${escapeHtml(text)}</div>`;
     positionTooltip(e);
-    tooltipEl.style.display = 'block';
-    tooltipEl.setAttribute('aria-hidden', 'false');
+    DOM.appTooltip.style.display = 'block';
+    DOM.appTooltip.setAttribute('aria-hidden', 'false');
   }
 
   function positionTooltip(e) {
-    if (!tooltipEl) return;
+    if (!DOM.appTooltip) return;
     const target = e.currentTarget || e.target;
     const rect = target.getBoundingClientRect();
 
@@ -1915,18 +2184,18 @@
     if (left < 80) left = 80;
     if (left > window.innerWidth - 80) left = window.innerWidth - 80;
 
-    tooltipEl.style.left = `${left}px`;
-    tooltipEl.style.top = `${top}px`;
+    DOM.appTooltip.style.left = `${left}px`;
+    DOM.appTooltip.style.top = `${top}px`;
   }
 
   function hideHeatmapTooltip() {
-    if (!tooltipEl) return;
-    tooltipEl.style.display = 'none';
-    tooltipEl.setAttribute('aria-hidden', 'true');
+    if (!DOM.appTooltip) return;
+    DOM.appTooltip.style.display = 'none';
+    DOM.appTooltip.setAttribute('aria-hidden', 'true');
   }
 
   // ==========================================================================
-  // 10. THEME SWITCHER LOGIC (Dark / Light / System) (Section 27)
+  // 11. THEME ENGINE & MOBILE NAVIGATION (Sections 27 & 28)
   // ==========================================================================
 
   function initTheme() {
@@ -1960,33 +2229,185 @@
 
     document.documentElement.setAttribute('data-theme', effective);
 
-    const themeIcon = document.getElementById('theme-icon');
-    const themeLabel = document.getElementById('theme-label');
-    const themeSelect = document.getElementById('settings-theme-select');
-
-    if (themeIcon) {
-      if (theme === 'dark') themeIcon.textContent = '🌙';
-      else if (theme === 'light') themeIcon.textContent = '☀️';
-      else themeIcon.textContent = '💻';
+    if (DOM.themeIcon) {
+      if (theme === 'dark') DOM.themeIcon.textContent = '🌙';
+      else if (theme === 'light') DOM.themeIcon.textContent = '☀️';
+      else DOM.themeIcon.textContent = '💻';
     }
 
-    if (themeLabel) {
-      if (theme === 'dark') themeLabel.textContent = 'Dark';
-      else if (theme === 'light') themeLabel.textContent = 'Light';
-      else themeLabel.textContent = 'System';
+    if (DOM.themeLabel) {
+      if (theme === 'dark') DOM.themeLabel.textContent = 'Dark';
+      else if (theme === 'light') DOM.themeLabel.textContent = 'Light';
+      else DOM.themeLabel.textContent = 'System';
     }
 
-    if (themeSelect) {
-      themeSelect.value = theme;
+    if (DOM.settingsThemeSelect) {
+      DOM.settingsThemeSelect.value = theme;
+    }
+  }
+
+  function toggleMobileMenu(forceState) {
+    if (!DOM.mainNavList || !DOM.btnMobileMenu) return;
+    const isCurrentlyOpen = DOM.mainNavList.classList.contains('mobile-open');
+    const newState = forceState !== undefined ? forceState : !isCurrentlyOpen;
+
+    if (newState) {
+      DOM.mainNavList.classList.add('mobile-open');
+      DOM.btnMobileMenu.classList.add('active');
+      DOM.btnMobileMenu.setAttribute('aria-expanded', 'true');
+    } else {
+      DOM.mainNavList.classList.remove('mobile-open');
+      DOM.btnMobileMenu.classList.remove('active');
+      DOM.btnMobileMenu.setAttribute('aria-expanded', 'false');
     }
   }
 
   // ==========================================================================
-  // 11. EVENT LISTENERS & FORM SUBMISSIONS
+  // 12. DATA EXPORT & IMPORT ENGINES (Sections 37 & 38)
+  // ==========================================================================
+
+  function exportApplicationData() {
+    try {
+      let exportPayload = {};
+      if (appState.mode === 'live' && appState.authenticatedUser) {
+        exportPayload = {
+          exportType: 'github_live_analytics',
+          exportedAt: new Date().toISOString(),
+          version: 2,
+          username: appState.authenticatedUser.login,
+          weeklyGoal: appState.weeklyGoal,
+          selectedYear: appState.selectedYear
+        };
+      } else {
+        exportPayload = {
+          exportType: 'demo_dataset',
+          exportedAt: new Date().toISOString(),
+          version: 2,
+          weeklyGoal: demoProvider.getWeeklyGoal(),
+          years: demoProvider.state.years
+        };
+      }
+
+      const jsonStr = JSON.stringify(exportPayload, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      if (DOM.hiddenExportLink) {
+        DOM.hiddenExportLink.href = url;
+        DOM.hiddenExportLink.download = `github-green-squares-${appState.mode}-${Date.now()}.json`;
+        DOM.hiddenExportLink.click();
+        URL.revokeObjectURL(url);
+      }
+      showToast('Exported dataset successfully as JSON.', 'success');
+    } catch (err) {
+      console.error('Export failed:', err);
+      showToast('Failed to export data.', 'error');
+    }
+  }
+
+  function handleImportFile(file) {
+    const errBox = document.getElementById('err-import-file');
+    const previewBox = document.getElementById('import-preview-box');
+    const summaryText = document.getElementById('import-file-summary');
+
+    if (!file || !file.name.endsWith('.json')) {
+      if (errBox) {
+        errBox.textContent = 'Please choose a valid .json file.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (!parsed || typeof parsed !== 'object') {
+          throw new Error('Root is not a valid JSON object');
+        }
+
+        // Validate structure
+        if (parsed.years && typeof parsed.years === 'object') {
+          // Valid full dataset
+          const yearsCount = Object.keys(parsed.years).length;
+          if (summaryText) summaryText.textContent = `✓ Valid backup found: ${yearsCount} years of contribution data.`;
+          if (previewBox) previewBox.style.display = 'block';
+          if (errBox) errBox.style.display = 'none';
+
+          // Store temporarily for confirmation
+          appState.pendingImportData = parsed;
+        } else {
+          throw new Error('Missing years property in backup file');
+        }
+      } catch (err) {
+        if (errBox) {
+          errBox.textContent = `Malformed backup file: ${err.message}`;
+          errBox.style.display = 'block';
+        }
+        if (previewBox) previewBox.style.display = 'none';
+        appState.pendingImportData = null;
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function executeDataImport() {
+    if (!appState.pendingImportData) {
+      const errBox = document.getElementById('err-import-file');
+      if (errBox) {
+        errBox.textContent = 'Please select a valid JSON backup file first.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+
+    try {
+      demoProvider.state.years = appState.pendingImportData.years;
+      if (appState.pendingImportData.weeklyGoal) {
+        demoProvider.state.weeklyGoal = appState.pendingImportData.weeklyGoal;
+        appState.weeklyGoal = appState.pendingImportData.weeklyGoal;
+      }
+      demoProvider.saveAppState();
+
+      closeModal('modal-import-data');
+      showToast('Successfully imported dataset!', 'success');
+      renderAll();
+    } catch (err) {
+      console.error('Import execution failed:', err);
+      showToast('Failed to save imported dataset.', 'error');
+    }
+  }
+
+  // ==========================================================================
+  // 13. API HEALTH CHECK (Section 19)
+  // ==========================================================================
+
+  async function checkApiHealth() {
+    try {
+      const res = await fetch('/api/health');
+      if (res.ok) {
+        const data = await res.json();
+        if (DOM.apiHealthLabel) DOM.apiHealthLabel.textContent = 'API: ● Connected';
+        if (DOM.apiHealthBadge) DOM.apiHealthBadge.className = 'health-badge';
+      } else {
+        if (DOM.apiHealthLabel) DOM.apiHealthLabel.textContent = 'API: ● Standalone';
+      }
+    } catch (err) {
+      if (DOM.apiHealthLabel) DOM.apiHealthLabel.textContent = 'API: ● Local Mode';
+    }
+  }
+
+  // ==========================================================================
+  // 14. EVENT LISTENERS & FORM SUBMISSIONS
   // ==========================================================================
 
   function initEventListeners() {
-    // 1. Navigation smooth scroll
+    // 1. Mobile Menu Toggle
+    if (DOM.btnMobileMenu) {
+      DOM.btnMobileMenu.addEventListener('click', () => toggleMobileMenu());
+    }
+
+    // 2. Navigation smooth scroll & close mobile menu
     document.querySelectorAll('.header-nav a, .footer-links a').forEach((link) => {
       link.addEventListener('click', (e) => {
         const targetId = link.getAttribute('href');
@@ -1997,24 +2418,47 @@
             el.scrollIntoView({ behavior: 'smooth' });
             document.querySelectorAll('.header-nav .nav-item').forEach((n) => n.classList.remove('active'));
             link.classList.add('active');
+            toggleMobileMenu(false);
           }
         }
       });
     });
 
-    // 2. Theme Dropdown
-    const themeBtn = document.getElementById('theme-btn');
-    const themeMenu = document.getElementById('theme-menu');
-    if (themeBtn && themeMenu) {
-      themeBtn.addEventListener('click', (e) => {
+    // 3. GitHub OAuth Connect & Disconnect Actions
+    if (DOM.btnConnectGithub) {
+      DOM.btnConnectGithub.addEventListener('click', () => {
+        window.location.href = '/api/auth/github/login';
+      });
+    }
+
+    if (DOM.btnDisconnectGithub) {
+      DOM.btnDisconnectGithub.addEventListener('click', () => {
+        window.location.href = '/api/auth/github/logout';
+      });
+    }
+
+    if (DOM.btnRefreshGithub) {
+      DOM.btnRefreshGithub.addEventListener('click', async () => {
+        if (appState.currentProvider instanceof GitHubDataProvider) {
+          appState.currentProvider.clearCache();
+          showToast('Refreshing live GitHub contributions...', 'info');
+          await renderAll();
+          showToast('Refreshed latest GitHub contributions.', 'success');
+        }
+      });
+    }
+
+    // 4. Theme Dropdown
+    if (DOM.themeBtn && DOM.themeMenu) {
+      DOM.themeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const isOpen = themeMenu.classList.contains('show');
+        const isOpen = DOM.themeMenu.classList.contains('show');
         if (isOpen) {
-          themeMenu.classList.remove('show');
-          themeBtn.setAttribute('aria-expanded', 'false');
+          DOM.themeMenu.classList.remove('show');
+          DOM.themeBtn.setAttribute('aria-expanded', 'false');
         } else {
-          themeMenu.classList.add('show');
-          themeBtn.setAttribute('aria-expanded', 'true');
+          DOM.themeMenu.classList.add('show');
+          DOM.themeBtn.setAttribute('aria-expanded', 'true');
         }
       });
 
@@ -2023,131 +2467,120 @@
           const val = item.getAttribute('data-theme-value');
           if (val) {
             applyTheme(val);
-            themeMenu.classList.remove('show');
-            themeBtn.setAttribute('aria-expanded', 'false');
+            DOM.themeMenu.classList.remove('show');
+            DOM.themeBtn.setAttribute('aria-expanded', 'false');
             showToast(`Theme switched to ${val}`, 'info');
           }
         });
       });
 
       document.addEventListener('click', (e) => {
-        if (!themeMenu.contains(e.target) && e.target !== themeBtn) {
-          themeMenu.classList.remove('show');
-          themeBtn.setAttribute('aria-expanded', 'false');
+        if (DOM.themeMenu && !DOM.themeMenu.contains(e.target) && e.target !== DOM.themeBtn) {
+          DOM.themeMenu.classList.remove('show');
+          if (DOM.themeBtn) DOM.themeBtn.setAttribute('aria-expanded', 'false');
         }
       });
     }
 
-    const settingsThemeSelect = document.getElementById('settings-theme-select');
-    if (settingsThemeSelect) {
-      settingsThemeSelect.addEventListener('change', (e) => {
+    if (DOM.settingsThemeSelect) {
+      DOM.settingsThemeSelect.addEventListener('change', (e) => {
         applyTheme(e.target.value);
         showToast(`Theme switched to ${e.target.value}`, 'info');
       });
     }
 
-    // 3. Year Selector (Section 20)
-    const yearSelect = document.getElementById('year-select');
-    if (yearSelect) {
-      yearSelect.addEventListener('change', (e) => {
+    // 5. Year Selector
+    if (DOM.yearSelect) {
+      DOM.yearSelect.addEventListener('change', async (e) => {
         appState.selectedYear = parseInt(e.target.value, 10);
         showToast(`Switched view to year ${appState.selectedYear}`, 'info');
-        renderAll();
+        await renderAll();
       });
     }
 
-    // 4. Activity Type Filter Dropdown & Filter Pills (Section 19)
-    const filterSelect = document.getElementById('type-filter-select');
-    const filterPills = document.querySelectorAll('.filter-pill');
-
-    if (filterSelect) {
-      filterSelect.addEventListener('change', (e) => {
+    // 6. Activity Type Filters
+    if (DOM.typeFilterSelect) {
+      DOM.typeFilterSelect.addEventListener('change', async (e) => {
         appState.activeFilter = e.target.value;
-        filterPills.forEach((p) => {
+        DOM.filterPills.forEach((p) => {
           if (p.getAttribute('data-type') === appState.activeFilter) p.classList.add('active');
           else p.classList.remove('active');
         });
         showToast(`Filtered by ${appState.activeFilter.toUpperCase()}`, 'info');
-        renderAll();
+        await renderAll();
       });
     }
 
-    filterPills.forEach((pill) => {
-      pill.addEventListener('click', () => {
+    DOM.filterPills.forEach((pill) => {
+      pill.addEventListener('click', async () => {
         const type = pill.getAttribute('data-type');
         if (!type) return;
         appState.activeFilter = type;
-        if (filterSelect) filterSelect.value = type;
-        filterPills.forEach((p) => p.classList.remove('active'));
+        if (DOM.typeFilterSelect) DOM.typeFilterSelect.value = type;
+        DOM.filterPills.forEach((p) => p.classList.remove('active'));
         pill.classList.add('active');
         showToast(`Filtered by ${type.toUpperCase()}`, 'info');
-        renderAll();
+        await renderAll();
       });
     });
 
-    // 5. Header Quick Action Buttons
-    const headerAddBtn = document.getElementById('btn-header-add');
-    const toolbarAddBtn = document.getElementById('btn-add-activity-modal');
-    if (headerAddBtn) headerAddBtn.addEventListener('click', openAddActivityModal);
-    if (toolbarAddBtn) toolbarAddBtn.addEventListener('click', openAddActivityModal);
+    // 7. Header Quick Action Buttons
+    if (DOM.btnHeaderAdd) DOM.btnHeaderAdd.addEventListener('click', openAddActivityModal);
+    if (DOM.btnAddActivityModal) DOM.btnAddActivityModal.addEventListener('click', openAddActivityModal);
 
-    const headerGenBtn = document.getElementById('btn-header-generate');
-    const toolbarGenBtn = document.getElementById('btn-open-gen-modal');
-    const settingsGenBtn = document.getElementById('btn-settings-open-gen');
-    if (headerGenBtn) headerGenBtn.addEventListener('click', openGenerateDemoModal);
-    if (toolbarGenBtn) toolbarGenBtn.addEventListener('click', openGenerateDemoModal);
-    if (settingsGenBtn) settingsGenBtn.addEventListener('click', openGenerateDemoModal);
+    if (DOM.btnHeaderGenerate) DOM.btnHeaderGenerate.addEventListener('click', openGenerateDemoModal);
+    if (DOM.btnOpenGenModal) DOM.btnOpenGenModal.addEventListener('click', openGenerateDemoModal);
+    if (DOM.btnSettingsOpenGen) DOM.btnSettingsOpenGen.addEventListener('click', openGenerateDemoModal);
 
-    const headerResetBtn = document.getElementById('btn-header-reset');
-    const settingsResetBtn = document.getElementById('btn-settings-reset');
-    if (headerResetBtn) headerResetBtn.addEventListener('click', openResetConfirmModal);
-    if (settingsResetBtn) settingsResetBtn.addEventListener('click', openResetConfirmModal);
+    if (DOM.btnHeaderReset) DOM.btnHeaderReset.addEventListener('click', openResetConfirmModal);
+    if (DOM.btnSettingsReset) DOM.btnSettingsReset.addEventListener('click', openResetConfirmModal);
 
-    // 6. Clear Repository Filter Button
-    const clearRepoBtn = document.getElementById('btn-clear-repo-filter');
-    if (clearRepoBtn) {
-      clearRepoBtn.addEventListener('click', () => {
+    // 8. Clear Repository Filter
+    if (DOM.btnClearRepoFilter) {
+      DOM.btnClearRepoFilter.addEventListener('click', async () => {
         appState.activeRepoFilter = null;
         showToast('Cleared repository filter', 'info');
-        renderAll();
+        await renderAll();
       });
     }
 
-    // 7. Weekly Goal Stepper & Inputs (Section 24)
-    const goalDecBtn = document.getElementById('btn-goal-dec');
-    const goalIncBtn = document.getElementById('btn-goal-inc');
-    const goalInput = document.getElementById('goal-target-input');
-    const settingsGoalInput = document.getElementById('settings-goal-input');
-
+    // 9. Weekly Goal Stepper & Inputs
     function updateGoal(newVal) {
-      const savedVal = dataProvider.setWeeklyGoal(newVal);
+      const savedVal = demoProvider.setWeeklyGoal(newVal);
       appState.weeklyGoal = savedVal;
       showToast(`Weekly goal updated to ${savedVal} contributions`, 'success');
-      renderWeeklyGoal(dataProvider.getYearData(appState.selectedYear));
-    }
-
-    if (goalDecBtn) {
-      goalDecBtn.addEventListener('click', () => {
-        updateGoal(appState.weeklyGoal - 5);
-      });
-    }
-    if (goalIncBtn) {
-      goalIncBtn.addEventListener('click', () => {
-        updateGoal(appState.weeklyGoal + 5);
-      });
-    }
-    if (goalInput) {
-      goalInput.addEventListener('change', (e) => {
-        updateGoal(parseInt(e.target.value, 10));
-      });
-    }
-    if (settingsGoalInput) {
-      settingsGoalInput.addEventListener('change', (e) => {
-        updateGoal(parseInt(e.target.value, 10));
+      appState.currentProvider.getYearData(appState.selectedYear).then((yearData) => {
+        renderWeeklyGoal(yearData);
       });
     }
 
-    // 8. Day Details Modal Actions (Section 9)
+    if (DOM.btnGoalDec) DOM.btnGoalDec.addEventListener('click', () => updateGoal(appState.weeklyGoal - 5));
+    if (DOM.btnGoalInc) DOM.btnGoalInc.addEventListener('click', () => updateGoal(appState.weeklyGoal + 5));
+    if (DOM.goalTargetInput) DOM.goalTargetInput.addEventListener('change', (e) => updateGoal(parseInt(e.target.value, 10)));
+    if (DOM.settingsGoalInput) DOM.settingsGoalInput.addEventListener('change', (e) => updateGoal(parseInt(e.target.value, 10)));
+
+    // 10. Data Backup & Migration (Export / Import)
+    if (DOM.btnExportData) DOM.btnExportData.addEventListener('click', exportApplicationData);
+    if (DOM.btnImportData) DOM.btnImportData.addEventListener('click', openImportModal);
+
+    const importFileInput = document.getElementById('import-file-input');
+    if (importFileInput) {
+      importFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleImportFile(e.target.files[0]);
+        }
+      });
+    }
+
+    const btnCloseImport = document.getElementById('btn-close-import-modal');
+    const btnCancelImport = document.getElementById('btn-cancel-import');
+    const btnConfirmImport = document.getElementById('btn-confirm-import');
+
+    if (btnCloseImport) btnCloseImport.addEventListener('click', () => closeModal('modal-import-data'));
+    if (btnCancelImport) btnCancelImport.addEventListener('click', () => closeModal('modal-import-data'));
+    if (btnConfirmImport) btnConfirmImport.addEventListener('click', executeDataImport);
+
+    // 11. Day Details Modal Actions
     const closeDayModalBtn = document.getElementById('btn-close-day-modal');
     const closeDayActionBtn = document.getElementById('btn-day-close-action');
     const editDayBtn = document.getElementById('btn-day-edit');
@@ -2172,7 +2605,7 @@
       });
     }
 
-    // 9. Add Activity Form Submission (Section 10)
+    // 12. Add Activity Form Submission
     const addForm = document.getElementById('form-add-activity');
     const closeAddModalBtn = document.getElementById('btn-close-add-modal');
     const cancelAddBtn = document.getElementById('btn-cancel-add');
@@ -2181,7 +2614,7 @@
     if (cancelAddBtn) cancelAddBtn.addEventListener('click', () => closeModal('modal-add-activity'));
 
     if (addForm) {
-      addForm.addEventListener('submit', (e) => {
+      addForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const dateVal = document.getElementById('add-input-date').value;
@@ -2220,7 +2653,7 @@
 
         const targetYear = parseInt(dateVal.substring(0, 4), 10);
 
-        dataProvider.addActivity(targetYear, {
+        await appState.currentProvider.addActivity(targetYear, {
           date: dateVal,
           repo: repoVal,
           type: typeVal,
@@ -2229,18 +2662,18 @@
         });
 
         closeModal('modal-add-activity');
-        showToast(`Successfully added ${countVal} ${typeVal} to ${formatFriendlyDate(dateVal)}`, 'success');
+        showToast(`Added ${countVal} ${typeVal} to ${formatFriendlyDate(dateVal)}`, 'success');
 
         if (targetYear !== appState.selectedYear) {
           appState.selectedYear = targetYear;
-          if (yearSelect) yearSelect.value = String(targetYear);
+          if (DOM.yearSelect) DOM.yearSelect.value = String(targetYear);
         }
 
-        renderAll();
+        await renderAll();
       });
     }
 
-    // 10. Edit Activity Form Submission (Section 11)
+    // 13. Edit Activity Form Submission
     const editForm = document.getElementById('form-edit-activity');
     const closeEditModalBtn = document.getElementById('btn-close-edit-modal');
     const cancelEditBtn = document.getElementById('btn-cancel-edit');
@@ -2249,7 +2682,7 @@
     if (cancelEditBtn) cancelEditBtn.addEventListener('click', () => closeModal('modal-edit-activity'));
 
     if (editForm) {
-      editForm.addEventListener('submit', (e) => {
+      editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const dateStr = document.getElementById('edit-hidden-date').value;
@@ -2262,7 +2695,7 @@
 
         const targetYear = parseInt(dateStr.substring(0, 4), 10);
 
-        dataProvider.updateActivity(targetYear, {
+        await appState.currentProvider.updateActivity(targetYear, {
           date: dateStr,
           primaryRepo: repo,
           commits,
@@ -2274,11 +2707,11 @@
 
         closeModal('modal-edit-activity');
         showToast(`Updated activity for ${formatFriendlyDate(dateStr)}`, 'success');
-        renderAll();
+        await renderAll();
       });
     }
 
-    // 11. Delete Activity Actions (Section 12)
+    // 14. Delete Activity Actions
     const closeDeleteModalBtn = document.getElementById('btn-close-delete-modal');
     const cancelDeleteBtn = document.getElementById('btn-cancel-delete');
     const confirmDeleteBtn = document.getElementById('btn-confirm-delete');
@@ -2287,18 +2720,18 @@
     if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', () => closeModal('modal-delete-confirm'));
 
     if (confirmDeleteBtn) {
-      confirmDeleteBtn.addEventListener('click', () => {
+      confirmDeleteBtn.addEventListener('click', async () => {
         if (appState.selectedDate) {
           const targetYear = parseInt(appState.selectedDate.substring(0, 4), 10);
-          dataProvider.deleteActivity(targetYear, appState.selectedDate);
+          await appState.currentProvider.deleteActivity(targetYear, appState.selectedDate);
           closeModal('modal-delete-confirm');
           showToast(`Deleted activity for ${formatFriendlyDate(appState.selectedDate)}`, 'info');
-          renderAll();
+          await renderAll();
         }
       });
     }
 
-    // 12. Generate Demo Activity Actions (Section 21)
+    // 15. Generate Demo Activity Actions
     const closeGenModalBtn = document.getElementById('btn-close-gen-modal');
     const cancelGenBtn = document.getElementById('btn-cancel-gen');
     const confirmGenBtn = document.getElementById('btn-confirm-gen');
@@ -2314,18 +2747,18 @@
     });
 
     if (confirmGenBtn) {
-      confirmGenBtn.addEventListener('click', () => {
+      confirmGenBtn.addEventListener('click', async () => {
         const selectedRadio = document.querySelector('input[name="demo-intensity"]:checked');
         const intensity = selectedRadio ? selectedRadio.value : 'normal';
 
-        dataProvider.generateDemo(appState.selectedYear, intensity);
+        await appState.currentProvider.generateDemo(appState.selectedYear, intensity);
         closeModal('modal-generate-demo');
         showToast(`Generated ${intensity.toUpperCase()} demo dataset for ${appState.selectedYear}`, 'success');
-        renderAll();
+        await renderAll();
       });
     }
 
-    // 13. Reset All Data Actions (Section 26)
+    // 16. Reset All Data Actions
     const closeResetModalBtn = document.getElementById('btn-close-reset-modal');
     const cancelResetBtn = document.getElementById('btn-cancel-reset');
     const confirmResetBtn = document.getElementById('btn-confirm-reset');
@@ -2334,22 +2767,22 @@
     if (cancelResetBtn) cancelResetBtn.addEventListener('click', () => closeModal('modal-reset-confirm'));
 
     if (confirmResetBtn) {
-      confirmResetBtn.addEventListener('click', () => {
-        dataProvider.resetAll();
+      confirmResetBtn.addEventListener('click', async () => {
+        await appState.currentProvider.resetAll();
         appState.activeFilter = 'all';
         appState.activeRepoFilter = null;
-        if (filterSelect) filterSelect.value = 'all';
-        filterPills.forEach((p) => {
+        if (DOM.typeFilterSelect) DOM.typeFilterSelect.value = 'all';
+        DOM.filterPills.forEach((p) => {
           if (p.getAttribute('data-type') === 'all') p.classList.add('active');
           else p.classList.remove('active');
         });
         closeModal('modal-reset-confirm');
         showToast('Application reset to initial demo state', 'warning');
-        renderAll();
+        await renderAll();
       });
     }
 
-    // 14. Achievement Modal Close
+    // 17. Achievement Modal Close
     const closeAchieveModalBtn = document.getElementById('btn-close-achieve-modal');
     const closeAchieveActionBtn = document.getElementById('btn-close-achieve-action');
     if (closeAchieveModalBtn) closeAchieveModalBtn.addEventListener('click', () => closeModal('modal-achievement-detail'));
@@ -2357,7 +2790,7 @@
   }
 
   // ==========================================================================
-  // 12. HELPER UTILITIES
+  // 15. HELPER UTILITIES
   // ==========================================================================
 
   function formatDateToISO(date) {
@@ -2368,7 +2801,7 @@
   }
 
   function parseISODate(dateStr) {
-    const parts = dateStr.split('-');
+    const parts = String(dateStr).split('-');
     return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
   }
 
@@ -2389,14 +2822,59 @@
   }
 
   // ==========================================================================
-  // 13. BOOTSTRAP APPLICATION
+  // 16. BOOTSTRAP INITIALIZATION SEQUENCE (Section 1)
+  // DOMContentLoaded -> Load Config -> Load Auth -> Load State -> Calculate -> Render -> Bind Events -> Ready
   // ==========================================================================
 
-  document.addEventListener('DOMContentLoaded', () => {
-    initTheme();
-    initEventListeners();
-    renderAll();
-    console.log('🟩 GitHub Green Squares Analytics initialized successfully.');
-  });
+  async function bootstrapApp() {
+    try {
+      // 1. Initialize validated DOM references
+      initDOMReferences();
+
+      // 2. Initialize theme preferences
+      initTheme();
+
+      // 3. Check for OAuth callback query parameters in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('auth')) {
+        showToast('Connected to GitHub! Loading your live analytics...', 'success');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (urlParams.has('auth_error')) {
+        showToast(`GitHub authorization failed: ${urlParams.get('auth_error')}`, 'error', 5000);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (urlParams.has('logged_out')) {
+        showToast('Logged out of GitHub. Restored Demo Mode.', 'info');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      // 4. Check GitHub authentication state
+      const authResult = await githubProvider.checkAuth();
+      if (authResult.authenticated && authResult.user) {
+        appState.mode = 'live';
+        appState.currentProvider = githubProvider;
+        appState.authenticatedUser = authResult.user;
+      } else {
+        appState.mode = 'demo';
+        appState.currentProvider = demoProvider;
+        appState.authenticatedUser = null;
+      }
+
+      // 5. Check API health in background
+      checkApiHealth();
+
+      // 6. Bind interactive event listeners
+      initEventListeners();
+
+      // 7. Initial full application render
+      await renderAll();
+
+      console.log('🟩 GitHub Green Squares Analytics V2 initialized successfully.');
+    } catch (err) {
+      console.error('Fatal initialization error:', err);
+      showToast('Something went wrong during application startup. Restoring demo state.', 'error');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', bootstrapApp);
 
 })();
